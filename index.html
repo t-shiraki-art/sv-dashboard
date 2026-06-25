@@ -517,29 +517,19 @@ function showLogin(){
   dataLoaded=false;
 }
 
-// 起動時: localStorageのセッションを即時確認
-(async()=>{
-  const{data:{session}}=await sb.auth.getSession();
-  if(session){
-    const email=session.user.email||'';
-    if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
-    showApp(session);
-    dataLoaded=true;
-    await loadAll();
-  } else {
-    showLogin();
-  }
-})();
-
-// セッション変化を監視
+// 起動・セッション変化を一本化（リロード対応）
 sb.auth.onAuthStateChange(async(event,session)=>{
   if(event==='SIGNED_OUT'||event==='USER_DELETED'){showLogin();return;}
-  if(event==='TOKEN_REFRESHED'){return;} // トークン更新時は再読み込み不要
-  if(session){
-    const email=session.user.email||'';
-    if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
-    showApp(session);
-    if(!dataLoaded){dataLoaded=true;await loadAll();}
+  if(event==='TOKEN_REFRESHED'){return;}
+  if(event==='INITIAL_SESSION'||event==='SIGNED_IN'){
+    if(session){
+      const email=session.user.email||'';
+      if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
+      showApp(session);
+      if(!dataLoaded){dataLoaded=true;await loadAll();}
+    } else {
+      showLogin();
+    }
   }
 });
 
