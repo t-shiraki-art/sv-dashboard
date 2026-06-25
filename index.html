@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SV臨店管理ダッシュボード</title>
+<script>
+(function(){
+  var hash=window.location.hash;
+  var path=window.location.pathname;
+  if(path==="/"<title>SV臨店管理ダッシュボード</title><title>SV臨店管理ダッシュボード</title>hash.indexOf("access_token")!==-1){
+    window.location.replace("https://t-shiraki-art.github.io/sv-dashboard/"+hash);
+  }
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -540,7 +549,7 @@ document.addEventListener('visibilitychange',async()=>{
     await loadAll();
   }
 });
-document.getElementById('btn-login').onclick=()=>sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://carsevensvdashboard.netlify.app'}});
+document.getElementById('btn-login').onclick=()=>sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://t-shiraki-art.github.io/sv-dashboard/'}});
 async function logout(){await sb.auth.signOut();}
 
 async function loadAll(){
