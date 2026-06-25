@@ -573,6 +573,7 @@ async function loadAll(){
   try{
     // セッションを先にリフレッシュ（失敗しても続行）
     try{ await sb.auth.refreshSession(); }catch(_){}
+    showToast('データ読み込み中...');
     const[{data:svs,error:e1},{data:stores,error:e2},{data:records,error:e3}]=await Promise.all([
       sb.from('svs').select('*').order('sort_order'),
       sb.from('stores').select('*').order('store_name'),
@@ -590,14 +591,15 @@ async function loadAll(){
       return;
     }
     allSVs=svs||[];allStores=stores||[];allRecords=records||[];
-    console.log(`Loaded: SVs=${allSVs.length} Stores=${allStores.length} Records=${allRecords.length}`);
+    showToast(`読み込み完了: SV${allSVs.length}件 店舗${allStores.length}件 記録${allRecords.length}件`);
     populateFilters();
     buildPeriodOptions();
     renderSummary();renderRecords();renderCalendar();renderPlan();
     renderCompliance();renderSvStats();renderStoreStats();renderStores();renderAlerts();
   }catch(e){
     console.error('loadAll exception:',e);
-    setTimeout(()=>{loadAll();},3000);
+    showToast('データ読み込みエラー: '+e.message, true);
+    dataLoaded=false;
   }
 }
 
