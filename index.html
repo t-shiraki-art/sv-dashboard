@@ -517,21 +517,33 @@ function showLogin(){
   dataLoaded=false;
 }
 
-// 起動・セッション変化を一本化（リロード対応）
+// 起動・セッション変化を管理
 sb.auth.onAuthStateChange(async(event,session)=>{
   if(event==='SIGNED_OUT'||event==='USER_DELETED'){showLogin();return;}
   if(event==='TOKEN_REFRESHED'){return;}
-  if(event==='INITIAL_SESSION'||event==='SIGNED_IN'){
-    if(session){
-      const email=session.user.email||'';
-      if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
-      showApp(session);
-      if(!dataLoaded){dataLoaded=true;await loadAll();}
-    } else {
-      showLogin();
-    }
+  if(session){
+    const email=session.user.email||'';
+    if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
+    showApp(session);
+    if(!dataLoaded){dataLoaded=true;await loadAll();}
+  } else if(event==='INITIAL_SESSION'){
+    showLogin();
   }
 });
+
+// フォールバック: onAuthStateChangeが遅い場合に備えてgetSessionも確認
+setTimeout(async()=>{
+  if(dataLoaded)return;
+  const{data:{session}}=await sb.auth.getSession();
+  if(session){
+    const email=session.user.email||'';
+    if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
+    showApp(session);
+    if(!dataLoaded){dataLoaded=true;await loadAll();}
+  } else {
+    showLogin();
+  }
+},1500);
 
 // バックグラウンドから復帰時にデータ再取得
 document.addEventListener('visibilitychange',async()=>{
@@ -556,7 +568,11 @@ async function loadAll(){
       console.error('loadAll errors:',e1,e2,e3);
       const{data:{session}}=await sb.auth.getSession();
       if(!session){showLogin();return;}
-      setTimeout(()=>{loadAll();},3000);
+      // エラーでもデータが部分的に取得できた場合は描画する
+      allSVs=svs||[];allStores=stores||[];allRecords=records||[];
+      if(allStores.length>0){populateFilters();buildPeriodOptions();renderSummary();renderRecords();renderCalendar();renderPlan();renderCompliance();renderSvStats();renderStoreStats();renderStores();renderAlerts();}
+      showToast('データ読み込みに問題が発生しました。再読み込みしてください。',true);
+      dataLoaded=false;
       return;
     }
     allSVs=svs||[];allStores=stores||[];allRecords=records||[];
