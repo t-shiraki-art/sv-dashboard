@@ -1151,8 +1151,9 @@ async function runAutoImport(){
   const run=async()=>{
     status.textContent=`処理中... ${processed}件完了（更新:${updated} URL登録:${urlOnly} 未取得:${notFound}）`;
     try{
-      const res=await fetch('https://hcqjfylgsxbiglpnwgyp.supabase.co/functions/v1/extract-visit-dates',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
-      if(!res.ok){consecutive_errors++;if(consecutive_errors>=3){status.style.background='var(--red-l)';status.style.color='var(--red)';status.textContent=`⚠️ エラー停止 ${processed}件処理済み`;btn.disabled=false;return;}setTimeout(run,2000);return;}
+      const controller=new AbortController();const tid=setTimeout(()=>controller.abort(),60000);
+      const res=await fetch('https://hcqjfylgsxbiglpnwgyp.supabase.co/functions/v1/extract-visit-dates',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}',signal:controller.signal}).finally(()=>clearTimeout(tid));
+      if(!res.ok){consecutive_errors++;if(consecutive_errors>=5){status.style.background='var(--red-l)';status.style.color='var(--red)';status.textContent=`⚠️ エラー停止 ${processed}件処理済み`;btn.disabled=false;return;}setTimeout(run,2000);return;}
       const data=await res.json();
       consecutive_errors=0;
       if(data.done||(!data.id&&!data.error)){
@@ -1163,7 +1164,7 @@ async function runAutoImport(){
         allRecords=records||[];renderRecords();renderSummary();renderAlerts();
         return;
       }
-      if(data.error){consecutive_errors++;if(consecutive_errors>=5){status.style.background='var(--red-l)';status.style.color='var(--red)';status.textContent=`⚠️ エラー: ${data.error}`;btn.disabled=false;return;}notFound++;processed++;setTimeout(run,2000);return;}
+      if(data.error){consecutive_errors++;if(consecutive_errors>=10){status.style.background='var(--red-l)';status.style.color='var(--red)';status.textContent=`⚠️ エラー: ${data.error}`;btn.disabled=false;return;}notFound++;processed++;setTimeout(run,2000);return;}
       processed++;
       if(data.status==='updated')updated++;
       else if(data.status==='url_only')urlOnly++;
@@ -1171,7 +1172,7 @@ async function runAutoImport(){
       setTimeout(run,1000);
     }catch(e){
       consecutive_errors++;
-      if(consecutive_errors>=5){status.style.background='var(--red-l)';status.style.color='var(--red)';status.textContent=`⚠️ ネットワークエラー 停止`;btn.disabled=false;return;}
+      if(consecutive_errors>=10){status.style.background='var(--red-l)';status.style.color='var(--red)';status.textContent=`⚠️ ネットワークエラー 停止`;btn.disabled=false;return;}
       notFound++;processed++;
       setTimeout(run,2000);
     }
