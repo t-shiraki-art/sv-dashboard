@@ -8,7 +8,7 @@
 (function(){
   var hash=window.location.hash;
   var path=window.location.pathname;
-  if(path==="/"<title>SV臨店管理ダッシュボード</title><title>SV臨店管理ダッシュボード</title>hash.indexOf("access_token")!==-1){
+  if((path==="/sv-dashboard/"||path==="/sv-dashboard/index.html")&&hash.indexOf("access_token")!==-1){
     window.location.replace("https://t-shiraki-art.github.io/sv-dashboard/"+hash);
   }
 })();
@@ -607,15 +607,17 @@ function showPage(id,el){
 // 1. SUMMARY
 function renderSummary(){
   const active=allRecords.filter(r=>{const s=allStores.find(x=>x.store_id===r.store);return!s||s.status==='active';});
-  const submitted=active.filter(r=>r.report_date);
-  const submRate=active.length?Math.round(submitted.length/active.length*100):0;
+  // 提出率は本日以前にvisit_dateがあるレコードのみを対象
+  const visited=active.filter(r=>r.visit_date&&new Date(r.visit_date)<=today);
+  const submitted=visited.filter(r=>r.report_date);
+  const submRate=visited.length?Math.round(submitted.length/visited.length*100):0;
   const days=submitted.filter(r=>r.days_to_submit!=null).map(r=>r.days_to_submit);
   const avgDays=days.length?Math.round(days.reduce((a,b)=>a+b,0)/days.length*10)/10:0;
   const overdue=active.filter(r=>r.visit_date&&!r.report_date&&daysFrom(r.visit_date)<=-8);
   const pending=active.filter(r=>r.visit_date&&!r.report_date&&daysFrom(r.visit_date)>-8&&daysFrom(r.visit_date)<=0);
   document.getElementById('kpi-summary').innerHTML=`
     <div class="kpi primary"><div class="kpi-label">臨店件数</div><div class="kpi-value">${active.length}</div><div class="kpi-sub">全記録</div></div>
-    <div class="kpi ${submRate>=80?'ok':'warn'}"><div class="kpi-label">シート提出率</div><div class="kpi-value">${submRate}%</div><div class="kpi-sub">${submitted.length}/${active.length}件</div></div>
+    <div class="kpi ${submRate>=80?'ok':'warn'}"><div class="kpi-label">シート提出率</div><div class="kpi-value">${submRate}%</div><div class="kpi-sub">${submitted.length}/${visited.length}件</div></div>
     <div class="kpi ${avgDays<=7?'ok':'warn'}"><div class="kpi-label">平均提出日数</div><div class="kpi-value">${avgDays}</div><div class="kpi-sub">日</div></div>
     <div class="kpi ${overdue.length>0?'danger':'ok'}"><div class="kpi-label">期限超過</div><div class="kpi-value">${overdue.length}</div><div class="kpi-sub">未提出${pending.length}件待ち</div></div>`;
   // monthly chart
@@ -632,7 +634,7 @@ function renderSummary(){
   document.getElementById('monthly-chart').innerHTML=chartHTML;
   // SV table
   const svMap={};allSVs.forEach(s=>{svMap[s.name]={count:0,sub:0};});
-  allRecords.forEach(r=>{if(r.sv&&svMap[r.sv]){svMap[r.sv].count++;if(r.report_date)svMap[r.sv].sub++;}});
+  allRecords.forEach(r=>{if(r.sv&&svMap[r.sv]&&r.visit_date&&new Date(r.visit_date)<=today){svMap[r.sv].count++;if(r.report_date)svMap[r.sv].sub++;}});
   document.getElementById('sv-summary-table').innerHTML=`<table><thead><tr><th>SV</th><th>件数</th><th>提出済</th><th>提出率</th></tr></thead><tbody>${
     Object.entries(svMap).filter(([,v])=>v.count>0).sort((a,b)=>b[1].count-a[1].count).map(([name,v])=>`<tr><td><span style="color:${svColor(name)};font-weight:700">${name}</span></td><td>${v.count}</td><td>${v.sub}</td><td><span class="badge ${v.sub/v.count>=.8?'badge-ok':'badge-warn'}">${Math.round(v.sub/v.count*100)}%</span></td></tr>`).join('')
   }</tbody></table>`;
@@ -926,7 +928,7 @@ function renderCompliance(){
 // 6. SV STATS
 function renderSvStats(){
   const map={};allSVs.forEach(s=>{map[s.name]={name:s.name,count:0,sub:0,days:[],active:s.is_active};});
-  allRecords.forEach(r=>{if(r.sv&&map[r.sv]){map[r.sv].count++;if(r.report_date){map[r.sv].sub++;if(r.days_to_submit!=null)map[r.sv].days.push(r.days_to_submit);}}});
+  allRecords.forEach(r=>{if(r.sv&&map[r.sv]&&r.visit_date&&new Date(r.visit_date)<=today){map[r.sv].count++;if(r.report_date){map[r.sv].sub++;if(r.days_to_submit!=null)map[r.sv].days.push(r.days_to_submit);}}});
   document.getElementById('sv-stats-table').innerHTML=`<table><thead><tr><th>担当SV</th><th>状態</th><th>臨店件数</th><th>提出済</th><th>未提出</th><th>提出率</th><th>平均提出日数</th></tr></thead><tbody>${
     Object.values(map).sort((a,b)=>b.count-a.count).map(v=>{
       const rate=v.count?Math.round(v.sub/v.count*100):0;
@@ -941,7 +943,7 @@ function renderStoreStats(){
   const q=(document.getElementById('store-stats-search').value||'').toLowerCase();
   const active=allStores.filter(s=>s.status==='active'&&(!q||s.store_name.toLowerCase().includes(q)));
   document.getElementById('store-cards').innerHTML=active.map(s=>{
-    const recs=allRecords.filter(r=>r.store===s.store_id);
+    const recs=allRecords.filter(r=>r.store===s.store_id&&r.visit_date&&new Date(r.visit_date)<=today);
     const sub=recs.filter(r=>r.report_date);
     const rate=recs.length?Math.round(sub.length/recs.length*100):0;
     const lastVisit=recs.filter(r=>r.visit_date).sort((a,b)=>new Date(b.visit_date)-new Date(a.visit_date))[0];
