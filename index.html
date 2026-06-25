@@ -539,10 +539,10 @@ sb.auth.onAuthStateChange(async(event,session)=>{
 // フォールバック: onAuthStateChangeが遅い場合に備えてgetSessionも確認
 async function initFromSession(){
   console.log('initFromSession called, dataLoaded=', dataLoaded);
-  showToast('セッション確認中...');
   if(dataLoaded)return;
   try{
     const{data:{session},error}=await sb.auth.getSession();
+    console.log('getSession result:', session?.user?.email, error);
     if(error)throw error;
     if(session){
       const email=session.user.email||'';
@@ -553,9 +553,25 @@ async function initFromSession(){
         await loadAll();
       }
     } else {
+      // セッションなし→localStorageを直接確認して再試行
+      const keys=Object.keys(localStorage).filter(k=>k.includes('supabase'));
+      console.log('localStorage supabase keys:', keys);
+      if(keys.length>0){
+        // 少し待ってリトライ
+        await new Promise(r=>setTimeout(r,1000));
+        const{data:{session:s2}}=await sb.auth.getSession();
+        console.log('retry getSession:', s2?.user?.email);
+        if(s2){
+          const email=s2.user.email||'';
+          if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
+          if(!dataLoaded){showApp(s2);dataLoaded=true;await loadAll();}
+          return;
+        }
+      }
       showLogin();
     }
   }catch(e){
+    console.error('initFromSession error:', e);
     showLogin();
   }
 }
