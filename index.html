@@ -550,7 +550,7 @@ document.addEventListener('visibilitychange',async()=>{
   }
 });
 document.getElementById('btn-login').onclick=()=>sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://t-shiraki-art.github.io/sv-dashboard/'}});
-async function logout(){await sb.auth.signOut();}
+async function logout(){await sb.auth.signOut();showLogin();}
 
 async function loadAll(){
   if(!(await ensureSession()))return;
