@@ -532,18 +532,32 @@ sb.auth.onAuthStateChange(async(event,session)=>{
 });
 
 // フォールバック: onAuthStateChangeが遅い場合に備えてgetSessionも確認
-setTimeout(async()=>{
+async function initFromSession(){
   if(dataLoaded)return;
-  const{data:{session}}=await sb.auth.getSession();
-  if(session){
-    const email=session.user.email||'';
-    if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
-    showApp(session);
-    if(!dataLoaded){dataLoaded=true;await loadAll();}
-  } else {
+  try{
+    const{data:{session},error}=await sb.auth.getSession();
+    if(error)throw error;
+    if(session){
+      const email=session.user.email||'';
+      if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
+      if(!dataLoaded){
+        showApp(session);
+        dataLoaded=true;
+        await loadAll();
+      }
+    } else {
+      showLogin();
+    }
+  }catch(e){
     showLogin();
   }
-},1500);
+}
+// DOMContentLoaded後すぐに実行
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(initFromSession,300));
+} else {
+  setTimeout(initFromSession,300);
+}
 
 // バックグラウンドから復帰時にデータ再取得
 document.addEventListener('visibilitychange',async()=>{
