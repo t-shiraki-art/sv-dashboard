@@ -521,41 +521,45 @@ function showLogin(){
 showLogin();
 
 // 起動・セッション変化を管理
+// セッション情報をlocalStorageに手動保存・復元
+const SESSION_KEY='sv-dashboard-session';
+function saveSession(session){
+  if(session){
+    try{localStorage.setItem(SESSION_KEY,JSON.stringify({email:session.user.email,access_token:session.access_token,refresh_token:session.refresh_token,expires_at:session.expires_at}));}catch(_){}
+  }
+}
+function clearSavedSession(){try{localStorage.removeItem(SESSION_KEY);}catch(_){}}
+
 sb.auth.onAuthStateChange(async(event,session)=>{
-  if(event==='SIGNED_OUT'||event==='USER_DELETED'){showLogin();return;}
-  if(event==='TOKEN_REFRESHED'){return;}
+  if(event==='SIGNED_OUT'||event==='USER_DELETED'){clearSavedSession();showLogin();return;}
+  if(event==='TOKEN_REFRESHED'&&session){saveSession(session);return;}
   if(session){
     const email=session.user.email||'';
     if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
+    saveSession(session);
     showApp(session);
     if(!dataLoaded){dataLoaded=true;await loadAll();}
   } else if(event==='INITIAL_SESSION'){
+    // セッションなし→手動保存セッションでリトライ
+    try{
+      const saved=localStorage.getItem(SESSION_KEY);
+      if(saved){
+        const s=JSON.parse(saved);
+        // リフレッシュトークンでセッション復元を試みる
+        const{data,error}=await sb.auth.setSession({access_token:s.access_token,refresh_token:s.refresh_token});
+        if(data?.session&&!error){
+          const email=data.session.user.email||'';
+          if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
+          saveSession(data.session);
+          showApp(data.session);
+          if(!dataLoaded){dataLoaded=true;await loadAll();}
+          return;
+        }
+      }
+    }catch(_){}
     showLogin();
   }
 });
-
-// フォールバック: onAuthStateChangeが遅い場合に備えてgetSessionも確認
-async function initFromSession(){
-  if(dataLoaded)return;
-  try{
-    const{data:{session}}=await sb.auth.getSession();
-    if(session){
-      const email=session.user.email||'';
-      if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
-      if(!dataLoaded){showApp(session);dataLoaded=true;await loadAll();}
-    } else {
-      showLogin();
-    }
-  }catch(e){
-    showLogin();
-  }
-}
-// DOMContentLoaded後すぐに実行
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(initFromSession,300));
-} else {
-  setTimeout(initFromSession,300);
-}
 
 // バックグラウンドから復帰時にデータ再取得
 document.addEventListener('visibilitychange',async()=>{
