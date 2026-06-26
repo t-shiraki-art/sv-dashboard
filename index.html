@@ -7,13 +7,10 @@
 <script>
 (function(){
   var hash=window.location.hash;
-  var search=window.location.search;
   var path=window.location.pathname;
-  // implicitフロー: access_tokenがhashにある場合
-  if(hash.indexOf('access_token')!==-1&&path!=='/sv-dashboard/'&&path!=='/sv-dashboard/index.html'){
+  if((path==='/sv-dashboard/'||path==='/sv-dashboard/index.html')&&hash.indexOf('access_token')!==-1){
     window.location.replace('https://t-shiraki-art.github.io/sv-dashboard/'+hash);
   }
-  // PKCEフロー: codeがsearchにある場合はそのまま（Supabaseが処理）
 })();
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -466,7 +463,7 @@ textarea{min-height:70px;resize:vertical}
 <script>
 const SURL='https://hcqjfylgsxbiglpnwgyp.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjcWpmeWxnc3hiaWdscG53Z3lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NDkyNDIsImV4cCI6MjA5NzQyNTI0Mn0.l3Avkl5UJaj0XSWkHfdOTYCv7-rx94QtNpquNV0X6oY';
-const sb=supabase.createClient(SURL,SKEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:'sb-hcqjfylgsxbiglpnwgyp-auth-token',flowType:'pkce'}});
+const sb=supabase.createClient(SURL,SKEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:'sb-hcqjfylgsxbiglpnwgyp-auth-token',flowType:'implicit'}});
 
 // URLにダブルハッシュが含まれる場合に修正（Supabase OAuth コールバック問題）
 (function fixDoubleHash(){
