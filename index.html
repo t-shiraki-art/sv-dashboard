@@ -463,7 +463,7 @@ textarea{min-height:70px;resize:vertical}
 <script>
 const SURL='https://hcqjfylgsxbiglpnwgyp.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjcWpmeWxnc3hiaWdscG53Z3lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NDkyNDIsImV4cCI6MjA5NzQyNTI0Mn0.l3Avkl5UJaj0XSWkHfdOTYCv7-rx94QtNpquNV0X6oY';
-const sb=supabase.createClient(SURL,SKEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:'sb-hcqjfylgsxbiglpnwgyp-auth-token',flowType:'implicit'}});
+const sb=supabase.createClient(SURL,SKEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'sb-'+SURL.split('//')[1].split('.')[0]+'-auth-token'}});
 
 // URLにダブルハッシュが含まれる場合に修正（Supabase OAuth コールバック問題）
 (function fixDoubleHash(){
@@ -517,49 +517,36 @@ function showLogin(){
   dataLoaded=false;
 }
 
-// 初期表示：必ずログイン画面を表示してからセッション確認
+// 初期表示：必ずログイン画面を表示
 showLogin();
 
-// 起動・セッション変化を管理
-// セッション情報をlocalStorageに手動保存・復元
-const SESSION_KEY='sv-dashboard-session';
-function saveSession(session){
-  if(session){
-    try{localStorage.setItem(SESSION_KEY,JSON.stringify({email:session.user.email,access_token:session.access_token,refresh_token:session.refresh_token,expires_at:session.expires_at}));}catch(_){}
-  }
+// セッション管理
+async function handleSession(session){
+  if(!session){showLogin();return;}
+  const email=session.user?.email||'';
+  if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
+  showApp(session);
+  if(!dataLoaded){dataLoaded=true;await loadAll();}
 }
-function clearSavedSession(){try{localStorage.removeItem(SESSION_KEY);}catch(_){}}
 
+// 認証状態の変化を監視
 sb.auth.onAuthStateChange(async(event,session)=>{
-  if(event==='SIGNED_OUT'||event==='USER_DELETED'){clearSavedSession();showLogin();return;}
-  if(event==='TOKEN_REFRESHED'&&session){saveSession(session);return;}
-  if(session){
-    const email=session.user.email||'';
-    if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
-    saveSession(session);
-    showApp(session);
-    if(!dataLoaded){dataLoaded=true;await loadAll();}
-  } else if(event==='INITIAL_SESSION'){
-    // セッションなし→手動保存セッションでリトライ
-    try{
-      const saved=localStorage.getItem(SESSION_KEY);
-      if(saved){
-        const s=JSON.parse(saved);
-        // リフレッシュトークンでセッション復元を試みる
-        const{data,error}=await sb.auth.setSession({access_token:s.access_token,refresh_token:s.refresh_token});
-        if(data?.session&&!error){
-          const email=data.session.user.email||'';
-          if(!email.endsWith('@carseven.jp')){await sb.auth.signOut();showLogin();return;}
-          saveSession(data.session);
-          showApp(data.session);
-          if(!dataLoaded){dataLoaded=true;await loadAll();}
-          return;
-        }
-      }
-    }catch(_){}
-    showLogin();
+  if(event==='SIGNED_OUT'||event==='USER_DELETED'){showLogin();return;}
+  if(event==='TOKEN_REFRESHED'){return;}
+  if(event==='INITIAL_SESSION'||event==='SIGNED_IN'){
+    await handleSession(session);
   }
 });
+
+// フォールバック：INITIAL_SESSIONが発火しない場合に備えて直接getSession
+setTimeout(async()=>{
+  if(dataLoaded)return;
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    if(session&&!dataLoaded){await handleSession(session);}
+    else if(!session){showLogin();}
+  }catch(_){showLogin();}
+},800);
 
 // バックグラウンドから復帰時にデータ再取得
 document.addEventListener('visibilitychange',async()=>{
