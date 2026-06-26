@@ -212,6 +212,7 @@ textarea{min-height:70px;resize:vertical}
     <div class="nav-item" data-page="store-stats" onclick="showPage('store-stats',this)"><i class="ti ti-building-store"></i>店舗別</div>
     <div class="nav-item" data-page="stores" onclick="showPage('stores',this)"><i class="ti ti-database"></i>店舗マスタ</div>
     <div class="nav-item" data-page="alerts" onclick="showPage('alerts',this)"><i class="ti ti-bell"></i>アラート</div>
+    <div class="nav-item" data-page="sheets" onclick="showPage('sheets',this)"><i class="ti ti-file-analytics"></i>要因分析</div>
   </nav>
 
   <!-- MOBILE NAV -->
@@ -225,6 +226,7 @@ textarea{min-height:70px;resize:vertical}
     <div class="mobile-nav-item" data-page="store-stats" onclick="showPage('store-stats',this)"><i class="ti ti-building-store"></i>店舗別</div>
     <div class="mobile-nav-item" data-page="stores" onclick="showPage('stores',this)"><i class="ti ti-database"></i>マスタ</div>
     <div class="mobile-nav-item" data-page="alerts" onclick="showPage('alerts',this)"><i class="ti ti-bell"></i>アラート</div>
+    <div class="mobile-nav-item" data-page="sheets" onclick="showPage('sheets',this)"><i class="ti ti-file-analytics"></i>分析</div>
   </div>
 
   <main class="main">
@@ -405,6 +407,22 @@ textarea{min-height:70px;resize:vertical}
       <div class="card">
         <div class="card-head"><h3><i class="ti ti-bell-ringing" style="color:var(--orange)"></i> FC更新案内 未対応</h3></div>
         <div id="alert-notice" style="padding:0"></div>
+      </div>
+    </div>
+
+    <!-- 要因分析シートページ -->
+    <div id="page-sheets" class="page">
+      <div class="page-title">要因分析シート</div>
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input type="text" class="search-input" id="sheet-search" placeholder="店舗名で検索..." oninput="renderSheets()" style="flex:1;min-width:160px">
+          <select class="filter-select" id="sheet-sv-filter" onchange="renderSheets()"><option value="">SV全て</option></select>
+          <select class="filter-select" id="sheet-year-filter" onchange="renderSheets()"><option value="">年度全て</option></select>
+          <span id="sheet-count" style="font-size:13px;color:var(--text3);white-space:nowrap"></span>
+        </div>
+      </div>
+      <div class="card" style="padding:0">
+        <div id="sheets-table"></div>
       </div>
     </div>
   </main>
@@ -593,7 +611,7 @@ async function loadAll(){
 function populateFilters(){
   const activeNames=allSVs.filter(s=>s.is_active).map(s=>s.name);
   const allNames=allSVs.map(s=>s.name);
-  ['rec-sv-filter','plan-sv-filter','cal-sv-filter','comp-sv-filter','store-sv-filter'].forEach(id=>{
+  ['rec-sv-filter','plan-sv-filter','cal-sv-filter','comp-sv-filter','store-sv-filter','sheet-sv-filter'].forEach(id=>{
     const el=document.getElementById(id);if(!el)return;
     const first=el.options[0];el.innerHTML='';el.appendChild(first);
     allNames.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;el.appendChild(o);});
@@ -611,6 +629,7 @@ function showPage(id,el){
   document.querySelectorAll('.nav-item,.mobile-nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll(`[data-page="${id}"]`).forEach(n=>n.classList.add('active'));
+  if(id==='sheets')renderSheets();
 }
 
 // 1. SUMMARY
@@ -1188,6 +1207,48 @@ async function runAutoImport(){
     }
   };
   run();
+}
+
+function renderSheets(){
+  const q=(document.getElementById('sheet-search').value||'').toLowerCase();
+  const sv=document.getElementById('sheet-sv-filter').value;
+  const yr=document.getElementById('sheet-year-filter').value;
+
+  // sheet_urlがあるレコードのみ対象
+  let filtered=allRecords.filter(r=>r.sheet_url);
+  if(sv)filtered=filtered.filter(r=>r.sv===sv);
+  if(yr)filtered=filtered.filter(r=>r.report_date&&r.report_date.startsWith(yr));
+  if(q)filtered=filtered.filter(r=>{
+    const sn=storeName(r.store).toLowerCase();
+    return sn.includes(q)||(r.note||'').toLowerCase().includes(q);
+  });
+
+  // 年度フィルタの選択肢を動的生成
+  const yearSel=document.getElementById('sheet-year-filter');
+  const currentYr=yearSel.value;
+  const years=[...new Set(allRecords.filter(r=>r.sheet_url&&r.report_date).map(r=>r.report_date.slice(0,4)))].sort().reverse();
+  yearSel.innerHTML='<option value="">年度全て</option>'+years.map(y=>`<option value="${y}" ${y===currentYr?'selected':''}>${y}年</option>`).join('');
+
+  document.getElementById('sheet-count').textContent=filtered.length+'件';
+
+  if(!filtered.length){
+    document.getElementById('sheets-table').innerHTML='<div style="padding:24px;text-align:center;color:var(--text3)">該当する要因分析シートがありません</div>';
+    return;
+  }
+
+  // 新しい順でソート
+  filtered.sort((a,b)=>(b.report_date||'').localeCompare(a.report_date||''));
+
+  document.getElementById('sheets-table').innerHTML=`<table><thead><tr><th>提出日</th><th>臨店日</th><th>店舗名</th><th>担当SV</th><th>メモ</th><th>要因分析</th></tr></thead><tbody>${
+    filtered.map(r=>`<tr>
+      <td style="white-space:nowrap">${fmtDate(r.report_date)}</td>
+      <td style="white-space:nowrap">${fmtDate(r.visit_date)}</td>
+      <td style="font-weight:500">${storeName(r.store)}</td>
+      <td><span style="color:${svColor(r.sv)};font-weight:700">${r.sv||'-'}</span></td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text2)">${r.note||''}</td>
+      <td><a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:13px;text-decoration:none;white-space:nowrap;font-weight:500">要因分析 ↗</a></td>
+    </tr>`).join('')
+  }</tbody></table>`;
 }
 
 function exportCSV(){
