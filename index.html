@@ -682,7 +682,7 @@ function renderRecords(){
   });
   document.getElementById('rec-count').textContent=filtered.length+'件';
   if(!filtered.length){document.getElementById('records-table').innerHTML='<div style="padding:24px;text-align:center;color:var(--text3)">記録がありません</div>';return;}
-  document.getElementById('records-table').innerHTML=`<table><thead><tr><th>臨店日</th><th>店舗名</th><th>担当SV</th><th>種別</th><th>候補日</th><th>シート提出</th><th>メモ</th><th></th></tr></thead><tbody>${
+  document.getElementById('records-table').innerHTML=`<table><thead><tr><th>臨店日</th><th>店舗名</th><th>担当SV</th><th>種別</th><th>候補日</th><th>シート提出</th><th>要因分析</th><th>メモ</th><th></th></tr></thead><tbody>${
     filtered.map(r=>`<tr>
       <td>${fmtDate(r.visit_date)}</td>
       <td style="font-weight:500">${storeName(r.store)}</td>
@@ -690,6 +690,7 @@ function renderRecords(){
       <td><span class="badge badge-blue">${r.type||'臨店'}</span></td>
       <td>${fmtDate(r.planned_date)}</td>
       <td>${r.report_date?`<span class="badge badge-ok">提出済 ${fmtDate(r.report_date)}</span>`:`<span class="badge badge-warn">未提出</span>`}</td>
+      <td>${r.sheet_url?`<a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:13px;text-decoration:none;white-space:nowrap">要因分析 ↗</a>`:`<span style="color:var(--text3);font-size:13px">-</span>`}</td>
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.note||''}</td>
       <td style="white-space:nowrap"><button class="btn btn-sm" onclick='editRecord(${JSON.stringify(r).replace(/'/g,"&#39;")})'>編集</button></td>
     </tr>`).join('')
