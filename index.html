@@ -650,7 +650,7 @@ function renderSummary(){
     <div class="kpi ${overdue.length>0?'danger':'ok'}"><div class="kpi-label">期限超過</div><div class="kpi-value">${overdue.length}</div><div class="kpi-sub">未提出${pending.length}件待ち</div></div>`;
   // monthly chart
   const months={};for(let i=5;i>=0;i--){const d=new Date(today.getFullYear(),today.getMonth()-i,1);const k=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}`;months[k]={count:0,sub:0};}
-  allRecords.forEach(r=>{if(!r.report_date)return;const k=r.report_date.slice(0,7).replace('-','/');if(months[k]){months[k].count++;if(r.report_date)months[k].sub++;}});
+  allRecords.forEach(r=>{if(!r.visit_date)return;const k=r.visit_date.slice(0,7).replace(/-/g,'/').slice(0,7);if(months[k]){months[k].count++;if(r.report_date)months[k].sub++;}});
   const maxV=Math.max(...Object.values(months).map(m=>m.count),1);
   const chartHTML='<div class="bar-chart">'+Object.entries(months).map(([k,v])=>`
     <div class="bar-group">
