@@ -774,7 +774,7 @@ function renderRecords(){
       <td>${r.report_date?`<span class="badge badge-ok">提出済 ${fmtDate(r.report_date)}</span>`:`<span class="badge badge-warn">未提出</span>`}</td>
       <td style="white-space:nowrap;display:flex;gap:6px;align-items:center">
         ${r.sheet_url?`<a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:13px;text-decoration:none">↗</a>`:''}
-        ${r.report_date?`<button class="btn btn-sm" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-edit"></i> ${r.text_focus?'編集':'入力'}</button>`:`<span style="color:var(--text3);font-size:12px">未提出</span>`}
+        ${r.visit_date?`<button class="btn btn-sm" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-edit"></i> ${r.text_focus?'編集':'入力'}</button>`:`<span style="color:var(--text3);font-size:12px">-</span>`}
       </td>
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.note||''}</td>
       <td style="white-space:nowrap"><button class="btn btn-sm" onclick='editRecord(${JSON.stringify(r).replace(/'/g,"&#39;")})'>編集</button></td>
