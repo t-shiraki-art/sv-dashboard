@@ -772,7 +772,10 @@ function renderRecords(){
       <td><span class="badge badge-blue">${r.type||'臨店'}</span></td>
       <td>${fmtDate(r.planned_date)}</td>
       <td>${r.report_date?`<span class="badge badge-ok">提出済 ${fmtDate(r.report_date)}</span>`:`<span class="badge badge-warn">未提出</span>`}</td>
-      <td>${r.sheet_url?`<a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:13px;text-decoration:none;white-space:nowrap">要因分析 ↗</a>`:`<span style="color:var(--text3);font-size:13px">-</span>`}</td>
+      <td style="white-space:nowrap;display:flex;gap:6px;align-items:center">
+        ${r.sheet_url?`<a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:13px;text-decoration:none">↗</a>`:''}
+        ${r.report_date?`<button class="btn btn-sm" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-edit"></i> ${r.text_focus?'編集':'入力'}</button>`:`<span style="color:var(--text3);font-size:12px">未提出</span>`}
+      </td>
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.note||''}</td>
       <td style="white-space:nowrap"><button class="btn btn-sm" onclick='editRecord(${JSON.stringify(r).replace(/'/g,"&#39;")})'>編集</button></td>
     </tr>`).join('')
@@ -1325,8 +1328,8 @@ function renderSheets(){
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text2)">${r.note||''}</td>
       <td>${statusBadge(r.report_status)}</td>
       <td style="white-space:nowrap;display:flex;gap:6px;align-items:center">
-        <button class="btn btn-sm" onclick='openYoshinModal(${JSON.stringify(r)})'><i class="ti ti-edit"></i> 入力</button>
-        ${r.report_status==='draft'?`<button class="btn btn-sm" style="background:var(--accent-l);color:var(--accent)" onclick='openYoshinModal(${JSON.stringify(r)})'><i class="ti ti-send"></i> 確認</button>`:''}
+        <button class="btn btn-sm" onclick='openYoshinModal(${JSON.stringify(r)},"sheets")'><i class="ti ti-edit"></i> 入力</button>
+        ${r.report_status==='draft'?`<button class="btn btn-sm" style="background:var(--accent-l);color:var(--accent)" onclick='openYoshinModal(${JSON.stringify(r)},"sheets")'><i class="ti ti-send"></i> 確認</button>`:''}
       </td>
     </tr>`).join('')
   }</tbody></table>`;
@@ -1335,9 +1338,11 @@ function renderSheets(){
 
 // ===== 要因分析入力 =====
 let yoshinRecordId = null;
+let yoshinCallerPage = 'sheets'; // 呼び出し元ページ（sheets or records）
 
-function openYoshinModal(r) {
+function openYoshinModal(r, callerPage) {
   yoshinRecordId = r.id;
+  yoshinCallerPage = callerPage || 'sheets';
   const sn = storeName(r.store);
   document.getElementById('yoshin-modal-title').textContent = sn + ' 要因分析入力';
   document.getElementById('yoshin-modal-sub').textContent =
@@ -1446,7 +1451,7 @@ async function saveYoshin(createDraft) {
         document.getElementById('yoshin-error').textContent =
           'データは保存されました。メール下書き作成: ' + (result.error || '失敗');
         btn.innerHTML = orig; btn.disabled = false;
-        await loadData(); renderSheets();
+        await loadData(); yoshinCallerPage==='records'?renderRecords():renderSheets();
         return;
       }
       closeModal('yoshin-modal');
@@ -1455,7 +1460,7 @@ async function saveYoshin(createDraft) {
       closeModal('yoshin-modal');
       showToast('保存しました');
     }
-    await loadData(); renderSheets();
+    await loadData(); yoshinCallerPage==='records'?renderRecords():renderSheets();
   } catch (e) {
     document.getElementById('yoshin-error').textContent = 'エラー: ' + e.message;
   }
