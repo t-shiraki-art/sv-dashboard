@@ -478,9 +478,26 @@ textarea{min-height:70px;resize:vertical}
   
 <!-- YOSHIN MODAL -->
 <div class="modal-bg" id="yoshin-modal">
-  <div class="modal" style="width:720px;max-width:100%">
-    <h2 id="yoshin-modal-title" style="margin-bottom:4px">要因分析 入力</h2>
-    <p id="yoshin-modal-sub" style="font-size:12px;color:var(--text3);margin-bottom:16px"></p>
+  <div class="modal" style="width:740px;max-width:100%;padding:0;overflow:hidden">
+    <!-- モーダルヘッダー -->
+    <div style="padding:18px 24px 0;background:var(--card);border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <h2 id="yoshin-modal-title" style="margin:0;font-size:16px">要因分析 作成</h2>
+          <p id="yoshin-modal-sub" style="font-size:12px;color:var(--text3);margin:4px 0 0"></p>
+        </div>
+        <button onclick="closeModal('yoshin-modal')" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:0;line-height:1">×</button>
+      </div>
+      <!-- タブ -->
+      <div style="display:flex;gap:0">
+        <button id="ytab-btn-kpi" onclick="switchYoshinTab('kpi')" style="padding:8px 20px;border:none;border-bottom:2px solid var(--accent);background:none;color:var(--accent);font-weight:700;font-size:13px;cursor:pointer">📊 数値入力</button>
+        <button id="ytab-btn-text" onclick="switchYoshinTab('text')" style="padding:8px 20px;border:none;border-bottom:2px solid transparent;background:none;color:var(--text3);font-weight:600;font-size:13px;cursor:pointer">✏️ SV所見</button>
+      </div>
+    </div>
+    <!-- タブコンテンツ共通ラッパー -->
+    <div style="padding:18px 24px;max-height:65vh;overflow-y:auto">
+    <!-- タブ①：数値入力 -->
+    <div id="ytab-kpi" style="display:block">
     <!-- P20 -->
     <div style="background:linear-gradient(135deg,#7c3aed,#6d28d9);border-radius:10px;padding:14px 16px;margin-bottom:14px">
       <div style="font-size:11px;font-weight:700;color:#e9d5ff;letter-spacing:.06em;margin-bottom:10px">&#x1F451; PLATINUM 20（通期確定順位）</div>
@@ -528,7 +545,9 @@ textarea{min-height:70px;resize:vertical}
         <div><label style="font-size:11px;color:var(--text3)">一括査定成約率・目標 %</label><input type="number" id="y-ikkatu-rate-t" placeholder="20.0" step="0.1" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
       </div>
     </div>
-    <!-- テキスト -->
+    </div><!-- /ytab-kpi -->
+    <!-- タブ②：SV所見 -->
+    <div id="ytab-text" style="display:none">
     <div style="background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:16px;border:1px solid var(--border)">
       <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:12px">&#x270F;&#xFE0F; SV所見</div>
       <div style="display:flex;flex-direction:column;gap:12px">
@@ -538,11 +557,15 @@ textarea{min-height:70px;resize:vertical}
         <div><label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">&#x1F64F; オーナー様へのお願い <span style="font-weight:400;font-size:11px;color:var(--text3)">（任意）</span></label><textarea id="y-request" rows="2" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:13px;background:var(--card);color:var(--text1);resize:vertical" placeholder="オーナーに動いてほしいことがあれば"></textarea></div>
       </div>
     </div>
-    <div id="yoshin-error" style="color:var(--red);font-size:13px;margin-bottom:8px"></div>
-    <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap">
-      <button class="btn" onclick="closeModal('yoshin-modal')">キャンセル</button>
-      <button class="btn" id="yoshin-save-btn" onclick="saveYoshin(false)"><i class="ti ti-device-floppy"></i> 保存</button>
-      <button class="btn btn-primary" id="yoshin-draft-btn" onclick="saveYoshin(true)"><i class="ti ti-send"></i> 保存してメール下書き作成</button>
+    </div><!-- /ytab-text -->
+    </div><!-- /scroll wrapper -->
+    <!-- フッター -->
+    <div style="padding:14px 24px;border-top:1px solid var(--border);background:var(--card);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div id="yoshin-error" style="color:var(--red);font-size:13px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto">
+        <button class="btn" id="yoshin-save-btn" onclick="saveYoshin(false)"><i class="ti ti-device-floppy"></i> 保存</button>
+        <button class="btn btn-primary" id="yoshin-draft-btn" onclick="saveYoshin(true)"><i class="ti ti-send"></i> 保存してメール下書き作成</button>
+      </div>
     </div>
   </div>
 </div>
@@ -764,18 +787,22 @@ function renderRecords(){
   });
   document.getElementById('rec-count').textContent=filtered.length+'件';
   if(!filtered.length){document.getElementById('records-table').innerHTML='<div style="padding:24px;text-align:center;color:var(--text3)">記録がありません</div>';return;}
-  document.getElementById('records-table').innerHTML=`<table><thead><tr><th>臨店日</th><th>店舗名</th><th>担当SV</th><th>種別</th><th>候補日</th><th>シート提出</th><th>要因分析</th><th>メモ</th><th></th></tr></thead><tbody>${
+  document.getElementById('records-table').innerHTML=`<table><thead><tr><th>臨店日</th><th>店舗名</th><th>担当SV</th><th>種別</th><th>候補日</th><th>シート提出 / 要因分析</th><th style="display:none"></th><th>メモ</th><th></th></tr></thead><tbody>${
     filtered.map(r=>`<tr>
       <td>${fmtDate(r.visit_date)}</td>
       <td style="font-weight:500">${storeName(r.store)}</td>
       <td><span style="color:${svColor(r.sv)};font-weight:700">${r.sv||'-'}</span></td>
       <td><span class="badge badge-blue">${r.type||'臨店'}</span></td>
       <td>${fmtDate(r.planned_date)}</td>
-      <td>${r.report_date?`<span class="badge badge-ok">提出済 ${fmtDate(r.report_date)}</span>`:`<span class="badge badge-warn">未提出</span>`}</td>
-      <td style="white-space:nowrap;display:flex;gap:6px;align-items:center">
-        ${r.sheet_url?`<a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:13px;text-decoration:none">↗</a>`:''}
-        ${r.visit_date?`<button class="btn btn-sm" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-edit"></i> ${r.text_focus?'編集':'入力'}</button>`:`<span style="color:var(--text3);font-size:12px">-</span>`}
+      <td style="white-space:nowrap">
+        ${r.report_date
+          ? `<span class="badge badge-ok">提出済 ${fmtDate(r.report_date)}</span>${r.sheet_url?` <a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:12px;text-decoration:none">↗</a>`:''}`
+          : r.visit_date
+            ? `<button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-file-plus"></i> ${r.text_focus?'要因分析編集':'要因分析作成'}</button>`
+            : `<span class="badge badge-warn">未実施</span>`
+        }
       </td>
+      <td style="display:none"></td>
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.note||''}</td>
       <td style="white-space:nowrap"><button class="btn btn-sm" onclick='editRecord(${JSON.stringify(r).replace(/'/g,"&#39;")})'>編集</button></td>
     </tr>`).join('')
@@ -1331,6 +1358,20 @@ function renderSheets(){
 let yoshinRecordId = null;
 let yoshinCallerPage = 'sheets'; // 呼び出し元ページ（sheets or records）
 
+function switchYoshinTab(tab) {
+  document.getElementById('ytab-kpi').style.display = tab==='kpi' ? 'block' : 'none';
+  document.getElementById('ytab-text').style.display = tab==='text' ? 'block' : 'none';
+  const kpiBtn = document.getElementById('ytab-btn-kpi');
+  const textBtn = document.getElementById('ytab-btn-text');
+  if (tab==='kpi') {
+    kpiBtn.style.borderBottomColor='var(--accent)'; kpiBtn.style.color='var(--accent)'; kpiBtn.style.fontWeight='700';
+    textBtn.style.borderBottomColor='transparent'; textBtn.style.color='var(--text3)'; textBtn.style.fontWeight='600';
+  } else {
+    textBtn.style.borderBottomColor='var(--accent)'; textBtn.style.color='var(--accent)'; textBtn.style.fontWeight='700';
+    kpiBtn.style.borderBottomColor='transparent'; kpiBtn.style.color='var(--text3)'; kpiBtn.style.fontWeight='600';
+  }
+}
+
 function openYoshinModal(r, callerPage) {
   yoshinRecordId = r.id;
   yoshinCallerPage = callerPage || 'sheets';
@@ -1370,6 +1411,7 @@ function openYoshinModal(r, callerPage) {
   document.getElementById('y-action').value = n(r.text_action);
   document.getElementById('y-request').value = n(r.text_owner_request);
   document.getElementById('yoshin-error').textContent = '';
+  switchYoshinTab('kpi'); // 常に数値入力タブから開始
   document.getElementById('yoshin-modal').classList.add('open');
 }
 
