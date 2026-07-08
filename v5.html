@@ -805,21 +805,21 @@ function renderRecords(){
       <td><span style="color:${svColor(r.sv)};font-weight:700">${r.sv||'-'}</span></td>
       <td><span class="badge badge-blue">${r.type||'臨店'}</span></td>
       <td>${fmtDate(r.planned_date)}</td>
-      <td style="min-width:220px">
-        ${(r.visit_date||(r.planned_date&&r.planned_date<new Date().toISOString().slice(0,10)))
-          ?`<div style="display:flex;flex-direction:column;gap:4px">
-              <div style="display:flex;align-items:center;gap:4px">
-                ${r.report_date?`<span class="badge badge-ok">提出済 ${fmtDate(r.report_date)}</span>`:`<span class="badge badge-warn">未提出</span>`}
-                ${r.sheet_url?`<a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:12px;text-decoration:none">↗</a>`:""}
-              </div>
-              <button class="btn btn-sm" style="background:var(--accent);color:#fff;width:fit-content" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</button>
-            </div>`
-          :`<span class="badge" style="background:#f1f5f9;color:#64748b">未実施</span>`
+      <td style="white-space:nowrap">
+        ${r.report_date
+          ?`<span class="badge badge-ok">提出済 ${fmtDate(r.report_date)}</span>${r.sheet_url?` <a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:12px;text-decoration:none">↗</a>`:""}`
+          :`<span class="badge badge-warn">未提出</span>`
         }
       </td>
       <td style="display:none"></td>
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.note||''}</td>
-      <td style="white-space:nowrap"><button class="btn btn-sm" onclick='editRecord(${JSON.stringify(r).replace(/'/g,"&#39;")})'>編集</button></td>
+      <td style="white-space:nowrap;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick='editRecord(${JSON.stringify(r).replace(/'/g,"&#39;")})'>編集</button>
+        ${(r.visit_date||(r.planned_date&&r.planned_date<new Date().toISOString().slice(0,10)))
+          ?`<button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</button>`
+          :""
+        }
+      </td>
     </tr>`).join('')
   }</tbody></table>`;
 }
