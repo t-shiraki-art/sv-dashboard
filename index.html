@@ -813,10 +813,10 @@ function renderRecords(){
       </td>
       <td style="display:none"></td>
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.note||''}</td>
-      <td style="white-space:nowrap;display:flex;gap:6px;flex-wrap:wrap">
+      <td style="white-space:nowrap">
         <button class="btn btn-sm" onclick='editRecord(${JSON.stringify(r).replace(/'/g,"&#39;")})'>編集</button>
         ${(r.visit_date||(r.planned_date&&r.planned_date<new Date().toISOString().slice(0,10)))
-          ?`<button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</button>`
+          ?` <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-file-plus"></i> ${r.text_focus?"編集":"作成"}</button>`
           :""
         }
       </td>
