@@ -806,17 +806,14 @@ function renderRecords(){
       <td><span class="badge badge-blue">${r.type||'臨店'}</span></td>
       <td>${fmtDate(r.planned_date)}</td>
       <td style="white-space:nowrap">
-        ${(()=>{
-          const today = new Date().toISOString().slice(0,10);
-          const pastPlanned = r.planned_date && r.planned_date < today;
-          const showBtn = r.visit_date || pastPlanned;
-          if (!showBtn) return `<span class="badge" style="background:#f1f5f9;color:#64748b">未実施</span>`;
-          return `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-            ${r.report_date?`<span class="badge badge-ok">提出済 ${fmtDate(r.report_date)}</span>`:`<span class="badge badge-warn">未提出</span>`}
-            ${r.sheet_url?`<a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:12px;text-decoration:none">↗</a>`:''}
-            <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-file-plus"></i> ${r.text_focus?'要因分析編集':'要因分析作成'}</button>
-          </div>`;
-        })()}
+        ${(r.visit_date||(r.planned_date&&r.planned_date<new Date().toISOString().slice(0,10)))
+          ?`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              ${r.report_date?`<span class="badge badge-ok">提出済 ${fmtDate(r.report_date)}</span>`:`<span class="badge badge-warn">未提出</span>`}
+              ${r.sheet_url?`<a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:12px;text-decoration:none">↗</a>`:""}
+              <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</button>
+            </div>`
+          :`<span class="badge" style="background:#f1f5f9;color:#64748b">未実施</span>`
+        }
       </td>
       <td style="display:none"></td>
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.note||''}</td>
