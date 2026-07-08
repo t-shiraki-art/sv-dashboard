@@ -1314,23 +1314,14 @@ function renderSheets(){
   // 新しい順でソート
   filtered.sort((a,b)=>(b.report_date||'').localeCompare(a.report_date||''));
 
-  const statusBadge=s=>{
-    if(s==='sent') return`<span style="background:#dcfce7;color:#166534;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">✓ 送信済</span>`;
-    if(s==='draft') return`<span style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">✉ 下書き</span>`;
-    return`<span style="background:#f1f5f9;color:#64748b;font-size:11px;padding:2px 8px;border-radius:20px">未作成</span>`;
-  };
-  document.getElementById('sheets-table').innerHTML=`<table><thead><tr><th>提出日</th><th>臨店日</th><th>店舗名</th><th>担当SV</th><th>メモ</th><th>ステータス</th><th>操作</th></tr></thead><tbody>${
+  document.getElementById('sheets-table').innerHTML=`<table><thead><tr><th>提出日</th><th>臨店日</th><th>店舗名</th><th>担当SV</th><th>メモ</th><th>要因分析</th></tr></thead><tbody>${
     filtered.map(r=>`<tr>
       <td style="white-space:nowrap">${fmtDate(r.report_date)}</td>
       <td style="white-space:nowrap">${fmtDate(r.visit_date)}</td>
       <td style="font-weight:500">${storeName(r.store)}</td>
       <td><span style="color:${svColor(r.sv)};font-weight:700">${r.sv||'-'}</span></td>
-      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text2)">${r.note||''}</td>
-      <td>${statusBadge(r.report_status)}</td>
-      <td style="white-space:nowrap;display:flex;gap:6px;align-items:center">
-        <button class="btn btn-sm" onclick='openYoshinModal(${JSON.stringify(r)},"sheets")'><i class="ti ti-edit"></i> 入力</button>
-        ${r.report_status==='draft'?`<button class="btn btn-sm" style="background:var(--accent-l);color:var(--accent)" onclick='openYoshinModal(${JSON.stringify(r)},"sheets")'><i class="ti ti-send"></i> 確認</button>`:''}
-      </td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text2)">${r.note||''}</td>
+      <td><a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:13px;text-decoration:none;font-weight:500">要因分析 ↗</a></td>
     </tr>`).join('')
   }</tbody></table>`;
 }
