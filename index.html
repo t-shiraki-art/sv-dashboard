@@ -475,7 +475,79 @@ textarea{min-height:70px;resize:vertical}
       <button class="btn" onclick="closeModal('store-modal')">キャンセル</button>
       <button class="btn btn-primary" onclick="saveStore()">保存</button>
     </div>
+  
+<!-- YOSHIN MODAL -->
+<div class="modal-bg" id="yoshin-modal">
+  <div class="modal" style="width:720px;max-width:100%">
+    <h2 id="yoshin-modal-title" style="margin-bottom:4px">要因分析 入力</h2>
+    <p id="yoshin-modal-sub" style="font-size:12px;color:var(--text3);margin-bottom:16px"></p>
+    <!-- P20 -->
+    <div style="background:linear-gradient(135deg,#7c3aed,#6d28d9);border-radius:10px;padding:14px 16px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:#e9d5ff;letter-spacing:.06em;margin-bottom:10px">&#x1F451; PLATINUM 20（通期確定順位）</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:6px"><label style="font-size:10px;color:#c4b5fd;white-space:nowrap">総合順位</label><input type="number" id="y-p20-rank" placeholder="35" style="width:56px;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 8px;font-size:13px;background:rgba(255,255,255,.12);color:#fff"><span style="color:#e9d5ff;font-size:12px">位 /</span><input type="number" id="y-p20-total" placeholder="113" style="width:52px;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 8px;font-size:13px;background:rgba(255,255,255,.12);color:#fff"><span style="color:#e9d5ff;font-size:12px">店舗</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><label style="font-size:10px;color:#c4b5fd;white-space:nowrap">通期スコア</label><input type="number" id="y-p20-score" placeholder="3444" style="width:80px;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 8px;font-size:13px;background:rgba(255,255,255,.12);color:#fff"><span style="color:#e9d5ff;font-size:12px">pt</span></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">
+        <div><div style="font-size:9px;color:#c4b5fd;margin-bottom:3px">総買取台数</div><input type="number" id="y-p20-buy-count" placeholder="56" style="width:100%;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 4px;font-size:12px;background:rgba(255,255,255,.12);color:#fff;text-align:center"></div>
+        <div><div style="font-size:9px;color:#c4b5fd;margin-bottom:3px">買取生産性</div><input type="number" id="y-p20-buy-prod" placeholder="29" style="width:100%;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 4px;font-size:12px;background:rgba(255,255,255,.12);color:#fff;text-align:center"></div>
+        <div><div style="font-size:9px;color:#c4b5fd;margin-bottom:3px">販売生産性</div><input type="number" id="y-p20-sell-prod" placeholder="43" style="width:100%;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 4px;font-size:12px;background:rgba(255,255,255,.12);color:#fff;text-align:center"></div>
+        <div><div style="font-size:9px;color:#c4b5fd;margin-bottom:3px">損益分岐</div><input type="number" id="y-p20-breakeven" placeholder="71" style="width:100%;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 4px;font-size:12px;background:rgba(255,255,255,.12);color:#fff;text-align:center"></div>
+        <div><div style="font-size:9px;color:#c4b5fd;margin-bottom:3px">買取成約率</div><input type="number" id="y-p20-buy-rate" placeholder="59" style="width:100%;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 4px;font-size:12px;background:rgba(255,255,255,.12);color:#fff;text-align:center"></div>
+        <div><div style="font-size:9px;color:#c4b5fd;margin-bottom:3px">CVAシェア</div><input type="number" id="y-p20-cva" placeholder="70" style="width:100%;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 4px;font-size:12px;background:rgba(255,255,255,.12);color:#fff;text-align:center"></div>
+        <div><div style="font-size:9px;color:#c4b5fd;margin-bottom:3px">NPS</div><input type="number" id="y-p20-nps" placeholder="33" style="width:100%;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 4px;font-size:12px;background:rgba(255,255,255,.12);color:#fff;text-align:center"></div>
+      </div>
+    </div>
+    <!-- KPI -->
+    <div style="background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:14px;border:1px solid var(--border)">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px">&#x1F4CA; 主要KPI（実績・目標）</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        <div><label style="font-size:11px;color:var(--text3)">売上総利益（実績）</label><input type="number" id="y-gross" placeholder="4500000" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+        <div><label style="font-size:11px;color:var(--text3)">売上総利益（目標）</label><input type="number" id="y-gross-t" placeholder="6000000" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+        <div></div>
+        <div><label style="font-size:11px;color:var(--text3)">買取成約率・実績 %</label><input type="number" id="y-buy-rate" placeholder="33.3" step="0.1" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+        <div><label style="font-size:11px;color:var(--text3)">買取成約率・目標 %</label><input type="number" id="y-buy-rate-t" placeholder="45.0" step="0.1" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+        <div></div>
+        <div><label style="font-size:11px;color:var(--text3)">総査定数・実績</label><input type="number" id="y-query" placeholder="87" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+        <div><label style="font-size:11px;color:var(--text3)">総査定数・目標</label><input type="number" id="y-query-t" placeholder="54" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+        <div></div>
+        <div><label style="font-size:11px;color:var(--text3)">在庫充足率・実績 %</label><input type="number" id="y-stock" placeholder="66" step="0.1" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+        <div><label style="font-size:11px;color:var(--text3)">業販台数・実績</label><input type="number" id="y-gyouhan" placeholder="1" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+        <div><label style="font-size:11px;color:var(--text3)">業販台数・目標</label><input type="number" id="y-gyouhan-t" placeholder="14" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+      </div>
+    </div>
+    <!-- カンリー -->
+    <div style="background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:14px;border:1px solid var(--border)">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px">&#x1F4F1; カンリー（GBP実績）</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        <div><label style="font-size:11px;color:var(--text3)">総クチコミ数</label><input type="number" id="y-review-total" placeholder="118" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+        <div><label style="font-size:11px;color:var(--text3)">単月クチコミ数</label><input type="number" id="y-review-monthly" placeholder="2" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+        <div><label style="font-size:11px;color:var(--text3)">返信率 %</label><input type="number" id="y-reply-rate" placeholder="100" step="0.1" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+        <div><label style="font-size:11px;color:var(--text3)">★ 平均評価</label><input type="number" id="y-avg-score" placeholder="4.80" step="0.01" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+        <div><label style="font-size:11px;color:var(--text3)">一括査定成約率 %</label><input type="number" id="y-ikkatu-rate" placeholder="3.0" step="0.1" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+        <div><label style="font-size:11px;color:var(--text3)">一括査定成約率・目標 %</label><input type="number" id="y-ikkatu-rate-t" placeholder="20.0" step="0.1" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;background:var(--card);color:var(--text1)"></div>
+      </div>
+    </div>
+    <!-- テキスト -->
+    <div style="background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:16px;border:1px solid var(--border)">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:12px">&#x270F;&#xFE0F; SV所見</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div><label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">&#x1F4CC; 今月の重点項目</label><textarea id="y-focus" rows="2" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:13px;background:var(--card);color:var(--text1);resize:vertical" placeholder="例：MOTA一括査定のアポ率・成約率の改善とエリア見直し"></textarea></div>
+        <div><label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">&#x26A0;&#xFE0F; 主要課題</label><textarea id="y-issue" rows="3" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:13px;background:var(--card);color:var(--text1);resize:vertical" placeholder="・課題1&#10;・課題2"></textarea></div>
+        <div><label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">&#x2705; 対策・実施内容</label><textarea id="y-action" rows="4" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:13px;background:var(--card);color:var(--text1);resize:vertical" placeholder="・対策1&#10;・対策2"></textarea></div>
+        <div><label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">&#x1F64F; オーナー様へのお願い <span style="font-weight:400;font-size:11px;color:var(--text3)">（任意）</span></label><textarea id="y-request" rows="2" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:13px;background:var(--card);color:var(--text1);resize:vertical" placeholder="オーナーに動いてほしいことがあれば"></textarea></div>
+      </div>
+    </div>
+    <div id="yoshin-error" style="color:var(--red);font-size:13px;margin-bottom:8px"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="closeModal('yoshin-modal')">キャンセル</button>
+      <button class="btn" id="yoshin-save-btn" onclick="saveYoshin(false)"><i class="ti ti-device-floppy"></i> 保存</button>
+      <button class="btn btn-primary" id="yoshin-draft-btn" onclick="saveYoshin(true)"><i class="ti ti-send"></i> 保存してメール下書き作成</button>
+    </div>
   </div>
+</div>
+
+</div>
 </div>
 
 <script>
@@ -1239,16 +1311,167 @@ function renderSheets(){
   // 新しい順でソート
   filtered.sort((a,b)=>(b.report_date||'').localeCompare(a.report_date||''));
 
-  document.getElementById('sheets-table').innerHTML=`<table><thead><tr><th>提出日</th><th>臨店日</th><th>店舗名</th><th>担当SV</th><th>メモ</th><th>要因分析</th></tr></thead><tbody>${
+  const statusBadge=s=>{
+    if(s==='sent') return`<span style="background:#dcfce7;color:#166534;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">✓ 送信済</span>`;
+    if(s==='draft') return`<span style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">✉ 下書き</span>`;
+    return`<span style="background:#f1f5f9;color:#64748b;font-size:11px;padding:2px 8px;border-radius:20px">未作成</span>`;
+  };
+  document.getElementById('sheets-table').innerHTML=`<table><thead><tr><th>提出日</th><th>臨店日</th><th>店舗名</th><th>担当SV</th><th>メモ</th><th>ステータス</th><th>操作</th></tr></thead><tbody>${
     filtered.map(r=>`<tr>
       <td style="white-space:nowrap">${fmtDate(r.report_date)}</td>
       <td style="white-space:nowrap">${fmtDate(r.visit_date)}</td>
       <td style="font-weight:500">${storeName(r.store)}</td>
       <td><span style="color:${svColor(r.sv)};font-weight:700">${r.sv||'-'}</span></td>
-      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text2)">${r.note||''}</td>
-      <td><a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:13px;text-decoration:none;white-space:nowrap;font-weight:500">要因分析 ↗</a></td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text2)">${r.note||''}</td>
+      <td>${statusBadge(r.report_status)}</td>
+      <td style="white-space:nowrap;display:flex;gap:6px;align-items:center">
+        <button class="btn btn-sm" onclick='openYoshinModal(${JSON.stringify(r)})'><i class="ti ti-edit"></i> 入力</button>
+        ${r.report_status==='draft'?`<button class="btn btn-sm" style="background:var(--accent-l);color:var(--accent)" onclick='openYoshinModal(${JSON.stringify(r)})'><i class="ti ti-send"></i> 確認</button>`:''}
+      </td>
     </tr>`).join('')
   }</tbody></table>`;
+}
+
+
+// ===== 要因分析入力 =====
+let yoshinRecordId = null;
+
+function openYoshinModal(r) {
+  yoshinRecordId = r.id;
+  const sn = storeName(r.store);
+  document.getElementById('yoshin-modal-title').textContent = sn + ' 要因分析入力';
+  document.getElementById('yoshin-modal-sub').textContent =
+    (r.note || '') + '　臨店日: ' + (r.visit_date || '-') + '　担当SV: ' + (r.sv || '-');
+  // 既存データを展開
+  const n = v => v == null ? '' : v;
+  document.getElementById('y-p20-rank').value = n(r.p20_rank);
+  document.getElementById('y-p20-total').value = n(r.p20_total_stores);
+  document.getElementById('y-p20-score').value = n(r.p20_score);
+  document.getElementById('y-p20-buy-count').value = n(r.p20_buy_count_rank);
+  document.getElementById('y-p20-buy-prod').value = n(r.p20_buy_prod_rank);
+  document.getElementById('y-p20-sell-prod').value = n(r.p20_sell_prod_rank);
+  document.getElementById('y-p20-breakeven').value = n(r.p20_breakeven_rank);
+  document.getElementById('y-p20-buy-rate').value = n(r.p20_buy_rate_rank);
+  document.getElementById('y-p20-cva').value = n(r.p20_cva_rank);
+  document.getElementById('y-p20-nps').value = n(r.p20_nps_rank);
+  document.getElementById('y-gross').value = n(r.kpi_gross_profit);
+  document.getElementById('y-gross-t').value = n(r.kpi_gross_profit_target);
+  document.getElementById('y-buy-rate').value = n(r.kpi_buy_rate);
+  document.getElementById('y-buy-rate-t').value = n(r.kpi_buy_rate_target);
+  document.getElementById('y-query').value = n(r.kpi_query_count);
+  document.getElementById('y-query-t').value = n(r.kpi_query_count_target);
+  document.getElementById('y-stock').value = n(r.kpi_stock_rate);
+  document.getElementById('y-gyouhan').value = n(r.kpi_gyouhan_count);
+  document.getElementById('y-gyouhan-t').value = n(r.kpi_gyouhan_count_target);
+  document.getElementById('y-review-total').value = n(r.kanri_review_total);
+  document.getElementById('y-review-monthly').value = n(r.kanri_review_monthly);
+  document.getElementById('y-reply-rate').value = n(r.kanri_reply_rate);
+  document.getElementById('y-avg-score').value = n(r.kanri_avg_score);
+  document.getElementById('y-ikkatu-rate').value = n(r.kanri_ikkatu_conv_rate);
+  document.getElementById('y-ikkatu-rate-t').value = n(r.kanri_ikkatu_conv_target);
+  document.getElementById('y-focus').value = n(r.text_focus);
+  document.getElementById('y-issue').value = n(r.text_issue);
+  document.getElementById('y-action').value = n(r.text_action);
+  document.getElementById('y-request').value = n(r.text_owner_request);
+  document.getElementById('yoshin-error').textContent = '';
+  document.getElementById('yoshin-modal').classList.add('open');
+}
+
+function numOrNull(id) {
+  const v = document.getElementById(id).value;
+  return v === '' ? null : parseFloat(v);
+}
+function textOrNull(id) {
+  const v = document.getElementById(id).value.trim();
+  return v === '' ? null : v;
+}
+
+async function saveYoshin(createDraft) {
+  if (!yoshinRecordId) return;
+  const btn = createDraft
+    ? document.getElementById('yoshin-draft-btn')
+    : document.getElementById('yoshin-save-btn');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="ti ti-loader ti-spin"></i> 処理中...';
+  btn.disabled = true;
+
+  const payload = {
+    p20_rank: numOrNull('y-p20-rank'),
+    p20_total_stores: numOrNull('y-p20-total'),
+    p20_score: numOrNull('y-p20-score'),
+    p20_buy_count_rank: numOrNull('y-p20-buy-count'),
+    p20_buy_prod_rank: numOrNull('y-p20-buy-prod'),
+    p20_sell_prod_rank: numOrNull('y-p20-sell-prod'),
+    p20_breakeven_rank: numOrNull('y-p20-breakeven'),
+    p20_buy_rate_rank: numOrNull('y-p20-buy-rate'),
+    p20_cva_rank: numOrNull('y-p20-cva'),
+    p20_nps_rank: numOrNull('y-p20-nps'),
+    kpi_gross_profit: numOrNull('y-gross'),
+    kpi_gross_profit_target: numOrNull('y-gross-t'),
+    kpi_buy_rate: numOrNull('y-buy-rate'),
+    kpi_buy_rate_target: numOrNull('y-buy-rate-t'),
+    kpi_query_count: numOrNull('y-query'),
+    kpi_query_count_target: numOrNull('y-query-t'),
+    kpi_stock_rate: numOrNull('y-stock'),
+    kpi_gyouhan_count: numOrNull('y-gyouhan'),
+    kpi_gyouhan_count_target: numOrNull('y-gyouhan-t'),
+    kanri_review_total: numOrNull('y-review-total'),
+    kanri_review_monthly: numOrNull('y-review-monthly'),
+    kanri_reply_rate: numOrNull('y-reply-rate'),
+    kanri_avg_score: numOrNull('y-avg-score'),
+    kanri_ikkatu_conv_rate: numOrNull('y-ikkatu-rate'),
+    kanri_ikkatu_conv_target: numOrNull('y-ikkatu-rate-t'),
+    text_focus: textOrNull('y-focus'),
+    text_issue: textOrNull('y-issue'),
+    text_action: textOrNull('y-action'),
+    text_owner_request: textOrNull('y-request'),
+    report_status: createDraft ? 'draft' : 'none',
+    updated_at: new Date().toISOString(),
+  };
+
+  try {
+    const { error } = await sb.from('sv_records').update(payload).eq('id', yoshinRecordId);
+    if (error) throw error;
+
+    if (createDraft) {
+      // send-summary-email Edge Functionを呼んでGmailドラフト作成
+      const res = await fetch(SURL + '/functions/v1/send-summary-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ record_id: yoshinRecordId }),
+      });
+      const result = await res.json();
+      if (!result.success) {
+        // メール作成失敗でも保存は完了しているので警告だけ
+        document.getElementById('yoshin-error').textContent =
+          'データは保存されました。メール下書き作成: ' + (result.error || '失敗');
+        btn.innerHTML = orig; btn.disabled = false;
+        await loadData(); renderSheets();
+        return;
+      }
+      closeModal('yoshin-modal');
+      showToast('保存完了 — Gmailに下書きを作成しました');
+    } else {
+      closeModal('yoshin-modal');
+      showToast('保存しました');
+    }
+    await loadData(); renderSheets();
+  } catch (e) {
+    document.getElementById('yoshin-error').textContent = 'エラー: ' + e.message;
+  }
+  btn.innerHTML = orig; btn.disabled = false;
+}
+
+function showToast(msg) {
+  let t = document.getElementById('toast-msg');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-msg';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a2e4a;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2)';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.opacity = '1';
+  setTimeout(() => { t.style.opacity = '0'; }, 3000);
 }
 
 function exportCSV(){
