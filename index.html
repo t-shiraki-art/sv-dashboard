@@ -786,7 +786,7 @@ function renderRecords(){
     if(type&&r.type!==type)return false;
     if(status==='submitted'&&!r.report_date)return false;
     if(status==='pending'&&r.report_date)return false;
-    if(status==='yoshin'&&(r.text_focus||!r.visit_date))return false; // 臨店済みかつ要因分析未入力
+    if(status==='yoshin'&&(r.text_focus||!r.visit_date))return false;
     return true;
   });
   // visit_dateがある新しい順、なしは後ろ
@@ -806,11 +806,13 @@ function renderRecords(){
       <td><span class="badge badge-blue">${r.type||'臨店'}</span></td>
       <td>${fmtDate(r.planned_date)}</td>
       <td style="white-space:nowrap">
-        ${r.report_date
-          ? `<span class="badge badge-ok">提出済 ${fmtDate(r.report_date)}</span>${r.sheet_url?` <a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:12px;text-decoration:none">↗</a>`:''}`
-          : r.visit_date
-            ? `<button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-file-plus"></i> ${r.text_focus?'要因分析編集':'要因分析作成'}</button>`
-            : `<span class="badge" style="background:#f1f5f9;color:#64748b">未実施</span>`
+        ${r.visit_date
+          ? `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              ${r.report_date?`<span class="badge badge-ok">提出済 ${fmtDate(r.report_date)}</span>`:`<span class="badge badge-warn">未提出</span>`}
+              ${r.sheet_url?`<a href="${r.sheet_url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:12px;text-decoration:none">↗</a>`:''}
+              <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-file-plus"></i> ${r.text_focus?'要因分析編集':'要因分析作成'}</button>
+            </div>`
+          : `<span class="badge" style="background:#f1f5f9;color:#64748b">未実施</span>`
         }
       </td>
       <td style="display:none"></td>
