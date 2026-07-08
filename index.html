@@ -270,7 +270,7 @@ textarea{min-height:70px;resize:vertical}
           <option value="">種別全て</option><option value="臨店">臨店</option><option value="WEB">WEB</option>
         </select>
         <select class="filter-select" id="rec-status-filter" onchange="renderRecords()">
-          <option value="">状態全て</option><option value="submitted">提出済</option><option value="pending">未提出</option>
+          <option value="">状態全て</option><option value="submitted">提出済</option><option value="pending">未提出</option><option value="yoshin">要因分析未作成</option>
         </select>
         <span class="count-badge" id="rec-count">-</span>
       </div>
@@ -786,7 +786,15 @@ function renderRecords(){
     if(type&&r.type!==type)return false;
     if(status==='submitted'&&!r.report_date)return false;
     if(status==='pending'&&r.report_date)return false;
+    if(status==='yoshin'&&(r.text_focus||!r.visit_date))return false; // 臨店済みかつ要因分析未入力
     return true;
+  });
+  // visit_dateがある新しい順、なしは後ろ
+  filtered.sort((a,b)=>{
+    if(a.visit_date&&b.visit_date)return b.visit_date.localeCompare(a.visit_date);
+    if(a.visit_date)return -1;
+    if(b.visit_date)return 1;
+    return (b.planned_date||'').localeCompare(a.planned_date||'');
   });
   document.getElementById('rec-count').textContent=filtered.length+'件';
   if(!filtered.length){document.getElementById('records-table').innerHTML='<div style="padding:24px;text-align:center;color:var(--text3)">記録がありません</div>';return;}
