@@ -817,7 +817,7 @@ function renderRecords(){
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.note||''}</td>
       <td style="white-space:nowrap">
         <button class="btn btn-sm" onclick='editRecord(${JSON.stringify(r).replace(/'/g,"&#39;")})'>編集</button>
-        ${(r.visit_date||(r.planned_date&&r.planned_date<new Date().toISOString().slice(0,10)))
+        ${(!r.report_date&&(r.visit_date||(r.planned_date&&r.planned_date<new Date().toISOString().slice(0,10))))
           ?` <button class="btn-yoshin" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</button>`
           :""
         }
