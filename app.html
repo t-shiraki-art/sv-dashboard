@@ -176,6 +176,8 @@ textarea{min-height:70px;resize:vertical}
 .diff-bar-fill{position:absolute;height:100%;border-radius:3px}
 .diff-early{background:var(--green);right:50%}
 .diff-late{background:var(--orange);left:50%}
+.btn-yoshin{background:#2563eb!important;color:#fff!important;border:none!important;padding:4px 10px!important;border-radius:6px!important;font-size:12px!important;cursor:pointer!important;white-space:nowrap!important;display:inline-block!important;margin-left:4px}
+.btn-yoshin:hover{background:#1d4ed8!important}
 </style>
 </head>
 <body>
@@ -816,7 +818,7 @@ function renderRecords(){
       <td style="white-space:nowrap">
         <button class="btn btn-sm" onclick='editRecord(${JSON.stringify(r).replace(/'/g,"&#39;")})'>編集</button>
         ${(r.visit_date||(r.planned_date&&r.planned_date<new Date().toISOString().slice(0,10)))
-          ?` <button class="btn btn-sm" style="background:var(--accent)!important;color:#fff!important" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</button>`
+          ?` <button class="btn-yoshin" onclick='openYoshinModal(${JSON.stringify(r).replace(/'/g,"&#39;")},"records")'><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</button>`
           :""
         }
       </td>
