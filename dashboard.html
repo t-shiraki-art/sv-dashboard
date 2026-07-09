@@ -720,25 +720,26 @@ async function loadAll(){
     buildPeriodOptions();
     renderSummary();renderRecords();renderCalendar();renderPlan();
     renderCompliance();renderSvStats();renderStoreStats();renderStores();renderAlerts();
-    // データロード完了後にhashchangeハンドラを有効化
-    // ボタンクリックでSupabaseから直接データ取得してモーダルを開く
-    document.getElementById('records-table').addEventListener('pointerdown', function(e) {
-      var btn = e.target.closest('[data-yoshin-id]');
-      if (!btn) return;
-      e.preventDefault();
-      var id = parseInt(btn.getAttribute('data-yoshin-id'));
-      var r = allRecords.find(function(x){ return x.id === id; });
-      if (!r) {
-        // allRecordsにない場合はSupabaseから直接取得
-        sb.from('sv_records').select('*').eq('id', id).single()
-          .then(function(res) {
-            if (res.data) openYoshinModal(res.data, 'records');
-            else alert('取得失敗: ' + id);
-          });
-        return;
-      }
-      openYoshinModal(r, 'records');
-    });
+    // documentレベルでイベント登録（renderRecordsで消えない）
+    if (!window._yoshinListenerAdded) {
+      window._yoshinListenerAdded = true;
+      document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-yoshin-id]');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        var id = parseInt(btn.getAttribute('data-yoshin-id'));
+        var r = allRecords.find(function(x){ return x.id === id; });
+        if (r) {
+          openYoshinModal(r, 'records');
+        } else {
+          sb.from('sv_records').select('*').eq('id', id).single()
+            .then(function(res) {
+              if (res.data) openYoshinModal(res.data, 'records');
+            });
+        }
+      });
+    }
   }catch(e){
     console.error('loadAll exception:',e);
     showToast('データ読み込みエラー: '+e.message, true);
