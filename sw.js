@@ -1,0 +1,20 @@
+// Service Worker - 全キャッシュを無効化
+self.addEventListener('install', function(e) {
+  self.skipWaiting();
+});
+self.addEventListener('activate', function(e) {
+  e.waitUntil(
+    caches.keys().then(function(keys) {
+      return Promise.all(keys.map(function(key) {
+        return caches.delete(key);
+      }));
+    })
+  );
+  self.clients.claim();
+});
+self.addEventListener('fetch', function(e) {
+  e.respondWith(
+    fetch(e.request, {cache: 'no-store'})
+      .catch(function() { return caches.match(e.request); })
+  );
+});

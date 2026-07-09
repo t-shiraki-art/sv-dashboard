@@ -2,6 +2,13 @@
 <html lang="ja">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sv-dashboard/sw.js').then(function(reg){
+    reg.update();
+  });
+}
+</script>
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta charset="UTF-8">
