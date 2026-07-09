@@ -594,21 +594,13 @@ window.addEventListener('hashchange', function() {
   if (!m) return;
   history.replaceState(null, '', location.pathname + location.search);
   var id = m[1];
-  var records = window.allRecords || [];
-  var r = null;
-  for (var i = 0; i < records.length; i++) {
-    if (String(records[i].id) === id) { r = records[i]; break; }
-  }
-  if (!r) { alert('レコードが見つかりません: ' + id); return; }
+  var r = allRecords.find(function(x){ return String(x.id) === id; });
+  if (!r) { alert('レコードが見つかりません: ' + id + ' (全' + allRecords.length + '件)'); return; }
   openYoshinModal(r, 'records');
 });
 window._openYoshin = function(id) {
-  var records = window.allRecords || [];
-  var r = null;
-  for (var i = 0; i < records.length; i++) {
-    if (String(records[i].id) === String(id)) { r = records[i]; break; }
-  }
-  if (!r) { alert('レコードが見つかりません: ' + id + ' (全' + records.length + '件)'); return; }
+  var r = allRecords.find(function(x){ return String(x.id) === String(id); });
+  if (!r) { alert('レコードが見つかりません: ' + id + ' (全' + allRecords.length + '件)'); return; }
   openYoshinModal(r, 'records');
 };
 // ボタンのフォールバック（古いキャッシュ対策）
