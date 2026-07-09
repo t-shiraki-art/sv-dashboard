@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SV臨店管理ダッシュボード</title>
+</head>
+<body>
+<script>
+// dashboard.htmlを常に最新で読み込む
+var ts = Date.now();
+fetch('dashboard.html?nocache=' + ts)
+  .then(function(r){ return r.text(); })
+  .then(function(html){
+    document.open();
+    document.write(html);
+    document.close();
+  });
+</script>
+</body>
+</html>

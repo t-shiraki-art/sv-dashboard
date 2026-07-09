@@ -712,33 +712,36 @@ async function loadAll(){
       const{data:{session}}=await sb.auth.getSession();
       if(!session){showLogin();return;}
       // エラーでもデータが部分的に取得できた場合は描画する
-      allSVs=svs||[];allStores=stores||[];allRecords=records||[];
+      allSVs=svs||[];allStores=stores||[];allRecords=records||[];window._allRecords=allRecords;
       if(allStores.length>0){populateFilters();buildPeriodOptions();renderSummary();renderRecords();renderCalendar();renderPlan();renderCompliance();renderSvStats();renderStoreStats();renderStores();renderAlerts();}
       showToast('データ読み込みに問題が発生しました。再読み込みしてください。',true);
       dataLoaded=false;
       return;
     }
-    allSVs=svs||[];allStores=stores||[];allRecords=records||[];
+    allSVs=svs||[];allStores=stores||[];allRecords=records||[];window._allRecords=allRecords;
     populateFilters();
     buildPeriodOptions();
     renderSummary();renderRecords();renderCalendar();renderPlan();
     renderCompliance();renderSvStats();renderStoreStats();renderStores();renderAlerts();
     // データロード完了後にhashchangeハンドラを有効化
-    window.addEventListener('hashchange', function() {
-      var hash = location.hash;
-      var m = hash.match(/^#yoshin-([0-9]+)$/) ;
-      if (!m) return;
-      history.replaceState(null, '', location.pathname + location.search);
-      var id = m[1];
-      var r = allRecords.find(function(x){ return String(x.id) === id; });
-      if (!r) { alert('レコードが見つかりません: ' + id); return; }
-      openYoshinModal(r, 'records');
-    });
-    window._openYoshin = function(id) {
-      var r = allRecords.find(function(x){ return String(x.id) === String(id); });
-      if (!r) { alert('レコードが見つかりません: ' + id); return; }
-      openYoshinModal(r, 'records');
+    var _setupYoshinHandler = function() {
+      window.removeEventListener('hashchange', window._yoshinHashHandler);
+      window._yoshinHashHandler = function() {
+        var m = location.hash.match(/^#yoshin-([0-9]+)$/);
+        if (!m) return;
+        history.replaceState(null,'',location.pathname+location.search);
+        var r = allRecords.find(function(x){ return String(x.id)===m[1]; });
+        if (!r) { alert('id:'+m[1]+' not found in '+allRecords.length); return; }
+        openYoshinModal(r,'records');
+      };
+      window.addEventListener('hashchange', window._yoshinHashHandler);
+      window._openYoshin = function(id) {
+        var r = allRecords.find(function(x){ return String(x.id)===String(id); });
+        if (!r) { alert('id:'+id+' not found'); return; }
+        openYoshinModal(r,'records');
+      };
     };
+    _setupYoshinHandler();
   }catch(e){
     console.error('loadAll exception:',e);
     showToast('データ読み込みエラー: '+e.message, true);
