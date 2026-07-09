@@ -1632,10 +1632,15 @@ document.addEventListener('visibilitychange',async()=>{
 document.addEventListener('click', function(e){
   const btn = e.target.closest('.btn-yoshin');
   if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
   try {
     const raw = btn.getAttribute('data-record');
     const r = JSON.parse(raw.replace(/&#39;/g,"'"));
-    openYoshinModal(r, 'records');
+    if (typeof openYoshinModal === 'function') {
+      openYoshinModal(r, 'records');
+    }
   } catch(err) { console.error('btn-yoshin error:', err); }
-});
+}, true);
 </script>
+<script src="yoshin.js?v=202607090042"></script>
