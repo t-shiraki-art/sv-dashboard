@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><title>テスト</title></head>
+<body>
+<h2>要因分析モーダルテスト</h2>
+<button id="testBtn" style="background:blue;color:white;padding:10px 20px;font-size:16px;cursor:pointer">
+  要因分析作成（テスト）
+</button>
+<div id="result" style="margin-top:20px;font-size:18px;color:green"></div>
+
+<script>
+document.getElementById('testBtn').addEventListener('click', function() {
+  document.getElementById('result').textContent = 'ボタンが押されました！ ' + new Date().toLocaleTimeString();
+});
+</script>
+</body>
+</html>
