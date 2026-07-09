@@ -579,6 +579,16 @@ textarea{min-height:70px;resize:vertical}
 </div>
 
 <script>
+// 要因分析作成ボタン用グローバル関数（先頭で定義）
+window._openYoshin = function(id) {
+  var records = window.allRecords || [];
+  var r = null;
+  for (var i = 0; i < records.length; i++) {
+    if (records[i].id == id) { r = records[i]; break; }
+  }
+  if (!r) { alert('レコードが見つかりません: ' + id); return; }
+  openYoshinModal(r, 'records');
+};
 const SURL='https://hcqjfylgsxbiglpnwgyp.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjcWpmeWxnc3hiaWdscG53Z3lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NDkyNDIsImV4cCI6MjA5NzQyNTI0Mn0.l3Avkl5UJaj0XSWkHfdOTYCv7-rx94QtNpquNV0X6oY';
 const sb=supabase.createClient(SURL,SKEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'sb-'+SURL.split('//')[1].split('.')[0]+'-auth-token'}});
@@ -1643,10 +1653,4 @@ document.addEventListener('click', function(e){
   } catch(err) { console.error('btn-yoshin error:', err); }
 }, true);
 
-// グローバル関数 - window経由で確実に呼び出し
-window._openYoshin = function(id) {
-  var r = (window.allRecords || []).find(function(x){ return x.id == id; });
-  if (!r) { alert('レコードが見つかりません: ' + id); return; }
-  openYoshinModal(r, 'records');
-};
 </script>
