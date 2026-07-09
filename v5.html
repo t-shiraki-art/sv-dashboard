@@ -591,11 +591,20 @@ window._openYoshin = function(id) {
   var records = window.allRecords || [];
   var r = null;
   for (var i = 0; i < records.length; i++) {
-    if (records[i].id == id) { r = records[i]; break; }
+    if (String(records[i].id) === String(id)) { r = records[i]; break; }
   }
-  if (!r) { alert('レコードが見つかりません: ' + id); return; }
+  if (!r) { alert('レコードが見つかりません: ' + id + ' (全' + records.length + '件)'); return; }
   openYoshinModal(r, 'records');
 };
+// ボタンのフォールバック（古いキャッシュ対策）
+document.addEventListener('DOMContentLoaded', function() {
+  document.body.addEventListener('click', function(e) {
+    var btn = e.target.closest('.btn-yoshin');
+    if (!btn) return;
+    var id = btn.getAttribute('data-id') || btn.getAttribute('onclick')?.match(/\d+/)?.[0];
+    if (id) window._openYoshin(id);
+  });
+});
 const SURL='https://hcqjfylgsxbiglpnwgyp.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjcWpmeWxnc3hiaWdscG53Z3lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NDkyNDIsImV4cCI6MjA5NzQyNTI0Mn0.l3Avkl5UJaj0XSWkHfdOTYCv7-rx94QtNpquNV0X6oY';
 const sb=supabase.createClient(SURL,SKEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'sb-'+SURL.split('//')[1].split('.')[0]+'-auth-token'}});
