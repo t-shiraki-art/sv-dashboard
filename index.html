@@ -587,6 +587,21 @@ textarea{min-height:70px;resize:vertical}
 
 <script>
 // 要因分析作成ボタン用グローバル関数（先頭で定義）
+// aタグhashリンクでモーダルを開く
+window.addEventListener('hashchange', function() {
+  var hash = location.hash;
+  var m = hash.match(/^#yoshin-(\d+)$/);
+  if (!m) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  var id = m[1];
+  var records = window.allRecords || [];
+  var r = null;
+  for (var i = 0; i < records.length; i++) {
+    if (String(records[i].id) === id) { r = records[i]; break; }
+  }
+  if (!r) { alert('レコードが見つかりません: ' + id); return; }
+  openYoshinModal(r, 'records');
+});
 window._openYoshin = function(id) {
   var records = window.allRecords || [];
   var r = null;
@@ -844,7 +859,7 @@ function renderRecords(){
       <td style="white-space:nowrap">
         <button class="btn btn-sm" onclick='editRecord(${JSON.stringify(r).replace(/'/g,"&#39;")})'>編集</button>
         ${(!r.report_date&&(r.visit_date||(r.planned_date&&r.planned_date<new Date().toISOString().slice(0,10))))
-          ?` <button class="btn-yoshin" data-id="${r.id}" onclick="window._openYoshin(${r.id})"><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</button>`
+          ?` <a class="btn-yoshin" href="#yoshin-${r.id}" style="text-decoration:none"><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</a>`
           :""
         }
       </td>
