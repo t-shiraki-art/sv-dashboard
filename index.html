@@ -588,20 +588,9 @@ textarea{min-height:70px;resize:vertical}
 <script>
 // 要因分析作成ボタン用グローバル関数（先頭で定義）
 // aタグhashリンクでモーダルを開く
-window.addEventListener('hashchange', function() {
-  var hash = location.hash;
-  var m = hash.match(/^#yoshin-(\d+)$/);
-  if (!m) return;
-  history.replaceState(null, '', location.pathname + location.search);
-  var id = m[1];
-  var r = allRecords.find(function(x){ return String(x.id) === id; });
-  if (!r) { alert('レコードが見つかりません: ' + id + ' (全' + allRecords.length + '件)'); return; }
-  openYoshinModal(r, 'records');
-});
+// hashchange と _openYoshin は loadData完了後に有効化される
 window._openYoshin = function(id) {
-  var r = allRecords.find(function(x){ return String(x.id) === String(id); });
-  if (!r) { alert('レコードが見つかりません: ' + id + ' (全' + allRecords.length + '件)'); return; }
-  openYoshinModal(r, 'records');
+  alert('データ読込中です。しばらくお待ちください。');
 };
 // ボタンのフォールバック（古いキャッシュ対策）
 document.addEventListener('DOMContentLoaded', function() {
@@ -734,6 +723,22 @@ async function loadAll(){
     buildPeriodOptions();
     renderSummary();renderRecords();renderCalendar();renderPlan();
     renderCompliance();renderSvStats();renderStoreStats();renderStores();renderAlerts();
+    // データロード完了後にhashchangeハンドラを有効化
+    window.addEventListener('hashchange', function() {
+      var hash = location.hash;
+      var m = hash.match(/^#yoshin-([0-9]+)$/) ;
+      if (!m) return;
+      history.replaceState(null, '', location.pathname + location.search);
+      var id = m[1];
+      var r = allRecords.find(function(x){ return String(x.id) === id; });
+      if (!r) { alert('レコードが見つかりません: ' + id); return; }
+      openYoshinModal(r, 'records');
+    });
+    window._openYoshin = function(id) {
+      var r = allRecords.find(function(x){ return String(x.id) === String(id); });
+      if (!r) { alert('レコードが見つかりません: ' + id); return; }
+      openYoshinModal(r, 'records');
+    };
   }catch(e){
     console.error('loadAll exception:',e);
     showToast('データ読み込みエラー: '+e.message, true);
