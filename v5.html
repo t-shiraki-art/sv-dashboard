@@ -818,7 +818,7 @@ function renderRecords(){
       <td style="white-space:nowrap">
         <button class="btn btn-sm" onclick='editRecord(${JSON.stringify(r).replace(/'/g,"&#39;")})'>編集</button>
         ${(!r.report_date&&(r.visit_date||(r.planned_date&&r.planned_date<new Date().toISOString().slice(0,10))))
-          ?` <button class="btn-yoshin" data-record='${JSON.stringify(r).replace(/'/g,"&#39;")}' data-caller="records"><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</button>`
+          ?` <button class="btn-yoshin" data-id="${r.id}" onclick="window._openYoshin(${r.id})"><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</button>`
           :""
         }
       </td>
@@ -1642,5 +1642,11 @@ document.addEventListener('click', function(e){
     }
   } catch(err) { console.error('btn-yoshin error:', err); }
 }, true);
+
+// グローバル関数 - window経由で確実に呼び出し
+window._openYoshin = function(id) {
+  var r = (window.allRecords || []).find(function(x){ return x.id == id; });
+  if (!r) { alert('レコードが見つかりません: ' + id); return; }
+  openYoshinModal(r, 'records');
+};
 </script>
-<script src="yoshin.js?v=202607090042"></script>
