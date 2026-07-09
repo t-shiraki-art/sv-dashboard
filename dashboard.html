@@ -588,10 +588,7 @@ textarea{min-height:70px;resize:vertical}
 <script>
 // 要因分析作成ボタン用グローバル関数（先頭で定義）
 // aタグhashリンクでモーダルを開く
-// hashchange と _openYoshin は loadData完了後に有効化される
-window._openYoshin = function(id) {
-  alert('データ読込中です。しばらくお待ちください。');
-};
+// yoshinボタンはpointerdownイベントで処理
 // ボタンのフォールバック（古いキャッシュ対策）
 document.addEventListener('DOMContentLoaded', function() {
   document.body.addEventListener('click', function(e) {
@@ -724,24 +721,24 @@ async function loadAll(){
     renderSummary();renderRecords();renderCalendar();renderPlan();
     renderCompliance();renderSvStats();renderStoreStats();renderStores();renderAlerts();
     // データロード完了後にhashchangeハンドラを有効化
-    var _setupYoshinHandler = function() {
-      window.removeEventListener('hashchange', window._yoshinHashHandler);
-      window._yoshinHashHandler = function() {
-        var m = location.hash.match(/^#yoshin-([0-9]+)$/);
-        if (!m) return;
-        history.replaceState(null,'',location.pathname+location.search);
-        var r = allRecords.find(function(x){ return String(x.id)===m[1]; });
-        if (!r) { alert('id:'+m[1]+' not found in '+allRecords.length); return; }
-        openYoshinModal(r,'records');
-      };
-      window.addEventListener('hashchange', window._yoshinHashHandler);
-      window._openYoshin = function(id) {
-        var r = allRecords.find(function(x){ return String(x.id)===String(id); });
-        if (!r) { alert('id:'+id+' not found'); return; }
-        openYoshinModal(r,'records');
-      };
-    };
-    _setupYoshinHandler();
+    // ボタンクリックでSupabaseから直接データ取得してモーダルを開く
+    document.getElementById('records-table').addEventListener('pointerdown', function(e) {
+      var btn = e.target.closest('[data-yoshin-id]');
+      if (!btn) return;
+      e.preventDefault();
+      var id = parseInt(btn.getAttribute('data-yoshin-id'));
+      var r = allRecords.find(function(x){ return x.id === id; });
+      if (!r) {
+        // allRecordsにない場合はSupabaseから直接取得
+        sb.from('sv_records').select('*').eq('id', id).single()
+          .then(function(res) {
+            if (res.data) openYoshinModal(res.data, 'records');
+            else alert('取得失敗: ' + id);
+          });
+        return;
+      }
+      openYoshinModal(r, 'records');
+    });
   }catch(e){
     console.error('loadAll exception:',e);
     showToast('データ読み込みエラー: '+e.message, true);
@@ -859,7 +856,7 @@ function renderRecords(){
       <td style="white-space:nowrap">
         <button class="btn btn-sm" onclick='editRecord(${JSON.stringify(r).replace(/'/g,"&#39;")})'>編集</button>
         ${(!r.report_date&&(r.visit_date||(r.planned_date&&r.planned_date<new Date().toISOString().slice(0,10))))
-          ?` <a class="btn-yoshin" href="#yoshin-${r.id}" style="text-decoration:none"><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</a>`
+          ?` <button class="btn-yoshin" data-yoshin-id="${r.id}" type="button"><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</button>`
           :""
         }
       </td>
