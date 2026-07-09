@@ -824,17 +824,6 @@ function renderRecords(){
       </td>
     </tr>`).join('')
   }</tbody></table>`;
-  // btn-yoshinのクリックをイベント委譲で登録
-  const tbl = document.getElementById('records-table');
-  tbl.onclick = function(e){
-    const btn = e.target.closest('.btn-yoshin');
-    if (!btn) return;
-    try {
-      const raw = btn.getAttribute('data-record');
-      const r = JSON.parse(raw.replace(/&#39;/g,"'"));
-      openYoshinModal(r, 'records');
-    } catch(err) { console.error('btn-yoshin error:', err); }
-  };
 }
 
 // RECORD MODAL
@@ -1639,6 +1628,14 @@ document.addEventListener('visibilitychange',async()=>{
     if(session&&allStores.length===0){await loadAll();}
   }
 });
+// btn-yoshinのクリックをページロード時に一度だけ登録（イベント委譲）
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.btn-yoshin');
+  if (!btn) return;
+  try {
+    const raw = btn.getAttribute('data-record');
+    const r = JSON.parse(raw.replace(/&#39;/g,"'"));
+    openYoshinModal(r, 'records');
+  } catch(err) { console.error('btn-yoshin error:', err); }
+});
 </script>
-</body>
-</html>
