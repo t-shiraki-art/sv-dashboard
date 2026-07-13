@@ -586,18 +586,7 @@ textarea{min-height:70px;resize:vertical}
 </div>
 
 <script>
-// 要因分析作成ボタン用グローバル関数（先頭で定義）
-// aタグhashリンクでモーダルを開く
-// yoshinボタンはpointerdownイベントで処理
-// ボタンのフォールバック（古いキャッシュ対策）
-document.addEventListener('DOMContentLoaded', function() {
-  document.body.addEventListener('click', function(e) {
-    var btn = e.target.closest('.btn-yoshin');
-    if (!btn) return;
-    var id = btn.getAttribute('data-id') || btn.getAttribute('onclick')?.match(/\d+/)?.[0];
-    if (id) window._openYoshin(id);
-  });
-});
+// yoshinボタンはloadData完了後にdocumentレベルで登録
 const SURL='https://hcqjfylgsxbiglpnwgyp.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjcWpmeWxnc3hiaWdscG53Z3lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NDkyNDIsImV4cCI6MjA5NzQyNTI0Mn0.l3Avkl5UJaj0XSWkHfdOTYCv7-rx94QtNpquNV0X6oY';
 const sb=supabase.createClient(SURL,SKEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'sb-'+SURL.split('//')[1].split('.')[0]+'-auth-token'}});
@@ -724,11 +713,12 @@ async function loadAll(){
     if (!window._yoshinListenerAdded) {
       window._yoshinListenerAdded = true;
       document.addEventListener('click', function(e) {
-        var btn = e.target.closest('[data-yoshin-id]');
+        var btn = e.target.closest('.btn-yoshin');
         if (!btn) return;
         e.preventDefault();
         e.stopPropagation();
         var id = parseInt(btn.getAttribute('data-yoshin-id'));
+        if (!id) return;
         var r = allRecords.find(function(x){ return x.id === id; });
         if (r) {
           openYoshinModal(r, 'records');
