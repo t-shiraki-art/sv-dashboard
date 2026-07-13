@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>debug4</title>
+</head>
+<body>
+<div id="out"></div>
+<script>
+// dashboard.htmlと全く同じrenderRecordsのボタン生成コードをテスト
+var allRecords = [
+  {id:210, sv:'テストSV', store:'TEST', type:'臨店', planned_date:'2026-07-01', visit_date:'2026-07-01', report_date:null, note:'テスト店', text_focus:null}
+];
+window.allRecords = allRecords;
+
+function openYoshinModal(r, caller) {
+  alert('成功！ id=' + r.id + ' note=' + r.note);
+}
+
+function storeName(s){ return 'テスト店'; }
+function svColor(s){ return '#333'; }
+function fmtDate(d){ return d||'-'; }
+
+var r = allRecords[0];
+
+// dashboard.htmlと同じボタン生成コード
+var html = `<button onclick="(function(){try{var id=${r.id};var recs=window.allRecords||allRecords||[];var rec=recs.filter(function(x){return x.id===id;})[0];if(rec){openYoshinModal(rec,'records');}else{alert('not found:'+id+'/'+recs.length);}}catch(e){alert(e.message);}})()\" style=\"background:#2563eb;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:16px;margin:10px\">作成（id=${r.id}）</button>`;
+
+document.getElementById('out').innerHTML = html;
+document.write = function(){};
+</script>
+</body>
+</html>
