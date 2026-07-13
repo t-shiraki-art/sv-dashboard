@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>デバッグ</title>
+<style>
+body{font-family:sans-serif;padding:20px}
+.btn-yoshin{background:#2563eb;color:#fff;border:none;padding:10px 20px;font-size:16px;border-radius:6px;cursor:pointer;display:block;margin:10px 0;width:200px}
+#log{margin-top:20px;padding:10px;background:#f0f0f0;min-height:100px;font-size:14px}
+</style>
+</head>
+<body>
+<h2>ボタンテスト</h2>
+
+<button class="btn-yoshin" data-id="123">要因分析作成（テスト1）</button>
+<button class="btn-yoshin" data-id="456">要因分析作成（テスト2）</button>
+
+<div id="log">ここにログが出ます</div>
+
+<script>
+var log = document.getElementById('log');
+
+function addLog(msg) {
+  log.innerHTML += '<p>' + new Date().toLocaleTimeString() + ': ' + msg + '</p>';
+}
+
+// touchstart
+document.addEventListener('touchstart', function(e) {
+  var b = e.target;
+  while(b && b.tagName) {
+    if(b.classList && b.classList.contains('btn-yoshin')) {
+      e.preventDefault();
+      addLog('touchstart: data-id=' + b.getAttribute('data-id'));
+      return;
+    }
+    b = b.parentNode;
+  }
+}, {passive: false});
+
+// click
+document.addEventListener('click', function(e) {
+  var b = e.target;
+  while(b && b.tagName) {
+    if(b.classList && b.classList.contains('btn-yoshin')) {
+      addLog('click: data-id=' + b.getAttribute('data-id'));
+      return;
+    }
+    b = b.parentNode;
+  }
+});
+
+addLog('ページ読み込み完了');
+</script>
+</body>
+</html>
