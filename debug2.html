@@ -6,38 +6,62 @@
 <title>デバッグ2</title>
 <style>
 body{font-family:sans-serif;padding:20px}
-.btn-yoshin{background:#2563eb!important;color:#fff!important;border:none!important;padding:10px 20px!important;font-size:16px!important;border-radius:6px!important;cursor:pointer!important;display:block;margin:10px 0;width:200px}
+.btn-yoshin{background:#2563eb!important;color:#fff!important;border:none!important;padding:10px 20px!important;font-size:16px!important;border-radius:6px!important;cursor:pointer!important;display:block;margin:10px 0;width:100%}
 #log{margin-top:20px;padding:10px;background:#f0f0f0;min-height:100px;font-size:14px}
 </style>
 </head>
 <body>
-<h2>デバッグ2</h2>
-<button class="btn-yoshin" data-id="123">要因分析作成</button>
-<div id="log"><p>ログ待機中...</p></div>
+<h2>デバッグ2 - allRecords模擬</h2>
+
+<table><tbody id="test-table">
+<tr>
+  <td>
+    <button class="btn-yoshin" data-id="210">要因分析作成（id=210）</button>
+  </td>
+</tr>
+</tbody></table>
+
+<div id="log">ログ:</div>
+
 <script>
+// dashboard.htmlと同じ条件を模擬
+var allRecords = [{id:210, note:'テスト', sv:'テストSV', store:'TEST001'}];
+window.allRecords = allRecords;
+
 var log = document.getElementById('log');
 function addLog(msg){
-  log.innerHTML += '<p>' + msg + '</p>';
+  log.innerHTML += '<p>' + new Date().toLocaleTimeString() + ': ' + msg + '</p>';
 }
 
-document.addEventListener('touchstart', function(e){
-  var t = e.target;
-  addLog('touchstart on: ' + t.tagName + ' class=' + t.className);
-  // 親をたどる
-  var b = t;
-  var found = false;
+function openYoshinModal(r, caller){
+  addLog('openYoshinModal呼び出し成功! id=' + r.id + ' note=' + r.note);
+  alert('モーダル開きます: ' + r.note);
+}
+
+function _handleYoshinBtn(e){
+  addLog('イベント受信: ' + e.type + ' target=' + e.target.tagName);
+  var b = e.target;
   while(b && b.tagName){
-    addLog('checking: ' + b.tagName + ' class=' + (b.className||''));
-    if(b.className && b.className.indexOf('btn-yoshin') >= 0){
-      found = true;
+    if(b.classList && b.classList.contains('btn-yoshin')){
       e.preventDefault();
-      addLog('FOUND btn-yoshin! data-id=' + b.getAttribute('data-id'));
-      break;
+      e.stopPropagation();
+      var id = parseInt(b.getAttribute('data-id'));
+      addLog('btn-yoshin検出 id=' + id);
+      var records = window.allRecords || allRecords || [];
+      addLog('records.length=' + records.length);
+      var r = records.filter(function(x){return x.id===id;})[0];
+      addLog('r=' + JSON.stringify(r));
+      if(r){ openYoshinModal(r,'records'); }
+      else{ alert('レコードなし id:'+id); }
+      return;
     }
     b = b.parentNode;
   }
-  if(!found) addLog('btn-yoshin NOT found');
-}, {passive:false});
+}
+
+document.addEventListener('touchstart', _handleYoshinBtn, {passive:false});
+document.addEventListener('click', _handleYoshinBtn);
+addLog('準備完了');
 </script>
 </body>
 </html>
