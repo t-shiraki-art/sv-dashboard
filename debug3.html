@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>デバッグ3</title>
+<style>
+body{font-family:sans-serif;padding:20px}
+.btn-yoshin{background:#2563eb;color:#fff;border:none;padding:12px 20px;font-size:16px;border-radius:6px;cursor:pointer;display:block;margin:10px 0;width:100%}
+.modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000}
+.modal-bg.open{display:flex;align-items:center;justify-content:center}
+.modal{background:#fff;padding:20px;border-radius:8px;width:90%;max-width:400px}
+#log{margin-top:20px;padding:10px;background:#f0f0f0;font-size:13px}
+</style>
+</head>
+<body>
+<h2>デバッグ3 - モーダルテスト</h2>
+<button class="btn-yoshin" data-id="210">要因分析作成</button>
+<div id="log">ログ:</div>
+
+<!-- yoshin-modal -->
+<div class="modal-bg" id="yoshin-modal">
+  <div class="modal">
+    <h3 id="yoshin-modal-title">タイトル</h3>
+    <p id="yoshin-modal-sub">サブ</p>
+    <input id="y-p20-rank" type="number">
+    <div id="yoshin-error"></div>
+    <button onclick="document.getElementById('yoshin-modal').classList.remove('open')">閉じる</button>
+  </div>
+</div>
+
+<script>
+var allRecords = [{id:210,note:'テスト店',sv:'テストSV',store:'TEST001',p20_rank:5,text_focus:'重点項目テスト'}];
+window.allRecords = allRecords;
+
+var log = document.getElementById('log');
+function addLog(msg){log.innerHTML += '<p>' + new Date().toLocaleTimeString() + ': ' + msg + '</p>';}
+
+function storeName(id){ return 'テスト店（'+id+'）'; }
+function switchYoshinTab(t){ addLog('switchYoshinTab: '+t); }
+
+function openYoshinModal(r, callerPage) {
+  addLog('openYoshinModal開始 id='+r.id);
+  try {
+    document.getElementById('yoshin-modal-title').textContent = storeName(r.store) + ' 要因分析入力';
+    document.getElementById('yoshin-modal-sub').textContent = (r.note||'') + ' SV:' + (r.sv||'-');
+    var n = function(v){ return v == null ? '' : v; };
+    document.getElementById('y-p20-rank').value = n(r.p20_rank);
+    document.getElementById('yoshin-error').textContent = '';
+    switchYoshinTab('kpi');
+    document.getElementById('yoshin-modal').classList.add('open');
+    addLog('モーダルopen完了');
+  } catch(err) {
+    addLog('エラー: ' + err.message);
+    alert('エラー: ' + err.message);
+  }
+}
+
+function _handleYoshinBtn(e){
+  var b = e.target;
+  while(b && b.tagName){
+    if(b.classList && b.classList.contains('btn-yoshin')){
+      e.preventDefault();
+      e.stopPropagation();
+      var id = parseInt(b.getAttribute('data-id'));
+      var r = (window.allRecords||allRecords).filter(function(x){return x.id===id;})[0];
+      if(r){ openYoshinModal(r,'records'); }
+      else{ alert('not found'); }
+      return;
+    }
+    b = b.parentNode;
+  }
+}
+document.addEventListener('touchstart', _handleYoshinBtn, {passive:false});
+document.addEventListener('click', _handleYoshinBtn);
+addLog('準備完了');
+</script>
+</body>
+</html>
