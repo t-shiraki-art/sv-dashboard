@@ -832,32 +832,19 @@ function renderRecords(){
     </tr>`).join('')
   }</tbody></table>`;
 
-  // テンプレートリテラルの外でボタンを生成（debug4と同じ方式）
+  // ボタン生成（data-yoshin-id属性のみ設定）
   var placeholders = document.querySelectorAll('.yoshin-placeholder');
-  document.title = 'SV臨店管理(' + placeholders.length + '件)';
   placeholders.forEach(function(ph) {
     var id = parseInt(ph.getAttribute('data-record-id'));
     var rec = allRecords.filter(function(x){ return x.id === id; })[0];
     if (!rec) return;
     var btn = document.createElement('button');
     btn.textContent = rec.text_focus ? '要因分析編集' : '要因分析作成';
-    btn.style.cssText = 'background:#2563eb!important;color:#fff!important;border:none!important;padding:6px 12px!important;border-radius:4px!important;cursor:pointer!important;font-size:12px!important;margin-left:4px!important;display:inline-block!important';
-    (function(r, b){
-      // touchstartで即座に反応（スマホ対応）
-      var touched = false;
-      b.addEventListener('touchstart', function(e){
-        e.stopPropagation();
-        touched = true;
-        try { openYoshinModal(r, 'records'); } catch(e2) { alert('err:'+e2.message); }
-      }, {passive: true});
-      b.addEventListener('click', function(e){
-        e.stopPropagation();
-        if (touched) { touched = false; return; } // touchstartで処理済み
-        try { openYoshinModal(r, 'records'); } catch(e2) { alert('err:'+e2.message); }
-      });
-    })(rec, btn);
+    btn.setAttribute('data-yoshin-id', String(rec.id));
+    btn.style.cssText = 'background:#2563eb;color:#fff;border:none;padding:6px 12px;border-radius:4px;font-size:12px;margin-left:4px;display:inline-block;cursor:pointer;-webkit-appearance:none';
     ph.parentNode.replaceChild(btn, ph);
   });
+  document.title = 'SV臨店管理ダッシュボード';
 }
 
 // RECORD MODAL
@@ -1693,4 +1680,20 @@ function _handleYoshinBtn(e){
 
 document.addEventListener('touchend', _handleYoshinBtn);
 document.addEventListener('click', _handleYoshinBtn);
+
+// 要因分析ボタン - documentレベルで拾う
+document.addEventListener('touchstart', function(e){
+  var btn = e.target.closest('[data-yoshin-id]');
+  if (!btn) return;
+  var id = parseInt(btn.getAttribute('data-yoshin-id'));
+  var rec = allRecords.filter(function(x){ return x.id === id; })[0];
+  if (rec) openYoshinModal(rec, 'records');
+}, {passive: true});
+document.addEventListener('click', function(e){
+  var btn = e.target.closest('[data-yoshin-id]');
+  if (!btn) return;
+  var id = parseInt(btn.getAttribute('data-yoshin-id'));
+  var rec = allRecords.filter(function(x){ return x.id === id; })[0];
+  if (rec) openYoshinModal(rec, 'records');
+});
 </script>
