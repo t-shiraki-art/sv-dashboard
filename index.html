@@ -1428,7 +1428,52 @@ function switchYoshinTab(tab) {
   }
 }
 
-// openYoshinModal moved to separate script tag below
+function openYoshinModal(r, callerPage) {
+  yoshinRecordId = r.id;
+  yoshinCallerPage = callerPage || 'sheets';
+  const sn = storeName(r.store);
+  document.getElementById('yoshin-modal-title').textContent = sn + ' 要因分析入力';
+  document.getElementById('yoshin-modal-sub').textContent =
+    (r.note || '') + '　臨店日: ' + (r.visit_date || '-') + '　担当SV: ' + (r.sv || '-');
+  // 既存データを展開
+  const n = v => v == null ? '' : v;
+  document.getElementById('y-p20-rank').value = n(r.p20_rank);
+  document.getElementById('y-p20-total').value = n(r.p20_total_stores);
+  document.getElementById('y-p20-score').value = n(r.p20_score);
+  document.getElementById('y-p20-buy-count').value = n(r.p20_buy_count_rank);
+  document.getElementById('y-p20-buy-prod').value = n(r.p20_buy_prod_rank);
+  document.getElementById('y-p20-sell-prod').value = n(r.p20_sell_prod_rank);
+  document.getElementById('y-p20-breakeven').value = n(r.p20_breakeven_rank);
+  document.getElementById('y-p20-buy-rate').value = n(r.p20_buy_rate_rank);
+  document.getElementById('y-p20-cva').value = n(r.p20_cva_rank);
+  document.getElementById('y-p20-nps').value = n(r.p20_nps_rank);
+  document.getElementById('y-gross').value = n(r.kpi_gross_profit);
+  document.getElementById('y-gross-t').value = n(r.kpi_gross_profit_target);
+  document.getElementById('y-buy-rate').value = n(r.kpi_buy_rate);
+  document.getElementById('y-buy-rate-t').value = n(r.kpi_buy_rate_target);
+  document.getElementById('y-query').value = n(r.kpi_query_count);
+  document.getElementById('y-query-t').value = n(r.kpi_query_count_target);
+  document.getElementById('y-stock').value = n(r.kpi_stock_rate);
+  document.getElementById('y-gyouhan').value = n(r.kpi_gyouhan_count);
+  document.getElementById('y-gyouhan-t').value = n(r.kpi_gyouhan_count_target);
+  document.getElementById('y-review-total').value = n(r.kanri_review_total);
+  document.getElementById('y-review-monthly').value = n(r.kanri_review_monthly);
+  document.getElementById('y-reply-rate').value = n(r.kanri_reply_rate);
+  document.getElementById('y-avg-score').value = n(r.kanri_avg_score);
+  document.getElementById('y-ikkatu-rate').value = n(r.kanri_ikkatu_conv_rate);
+  document.getElementById('y-ikkatu-rate-t').value = n(r.kanri_ikkatu_conv_target);
+  document.getElementById('y-focus').value = n(r.text_focus);
+  document.getElementById('y-issue').value = n(r.text_issue);
+  document.getElementById('y-action').value = n(r.text_action);
+  document.getElementById('y-request').value = n(r.text_owner_request);
+  document.getElementById('yoshin-error').textContent = '';
+  // まずモーダルを表示してからtab切替
+  var modal = document.getElementById('yoshin-modal');
+  modal.style.cssText = 'display:block!important;position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;z-index:9999!important;background:rgba(0,0,0,0.5)!important;overflow-y:auto!important';
+  modal.classList.add('open');
+  try { switchYoshinTab('kpi'); } catch(e) {}
+}
+
 function numOrNull(id) {
   const v = document.getElementById(id).value;
   return v === '' ? null : parseFloat(v);
