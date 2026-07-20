@@ -1457,18 +1457,11 @@ function openYoshinModal(r, callerPage) {
   document.getElementById('y-action').value = n(r.text_action);
   document.getElementById('y-request').value = n(r.text_owner_request);
   document.getElementById('yoshin-error').textContent = '';
-  switchYoshinTab('kpi'); // 常に数値入力タブから開始
+  // まずモーダルを表示してからtab切替
   var modal = document.getElementById('yoshin-modal');
+  modal.style.cssText = 'display:block!important;position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;z-index:9999!important;background:rgba(0,0,0,0.5)!important;overflow-y:auto!important';
   modal.classList.add('open');
-  modal.style.display = 'block';
-  modal.style.position = 'fixed';
-  modal.style.top = '0';
-  modal.style.left = '0';
-  modal.style.right = '0';
-  modal.style.bottom = '0';
-  modal.style.zIndex = '9999';
-  modal.style.background = 'rgba(0,0,0,0.5)';
-  modal.style.overflowY = 'auto';
+  try { switchYoshinTab('kpi'); } catch(e) {}
 }
 
 function numOrNull(id) {

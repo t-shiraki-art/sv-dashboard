@@ -109,9 +109,9 @@ tr:hover td{background:#fafbfc}
 .filter-select:focus{border-color:var(--primary)}
 .count-badge{background:var(--primary-l);color:var(--primary);font-size:11px;padding:3px 8px;border-radius:5px;font-weight:500;white-space:nowrap}
 /* MODAL */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;z-index:200;padding:40px 16px;overflow-y:auto}
-.modal-bg.open{display:flex}
-.modal{background:var(--card);border-radius:16px;padding:24px;width:560px;max-width:100%}
+.modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);display:none;z-index:9999;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal-bg.open{display:block!important}
+.modal{background:var(--card);border-radius:16px;padding:24px;width:560px;max-width:calc(100% - 32px);margin:40px auto;position:relative;z-index:10000}
 .modal h2{font-size:16px;font-weight:700;margin-bottom:16px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .form-row{margin-bottom:0}
@@ -698,38 +698,18 @@ async function loadAll(){
       const{data:{session}}=await sb.auth.getSession();
       if(!session){showLogin();return;}
       // エラーでもデータが部分的に取得できた場合は描画する
-      allSVs=svs||[];allStores=stores||[];allRecords=records||[];window._allRecords=allRecords;
+      allSVs=svs||[];allStores=stores||[];allRecords=records||[];window.allRecords=allRecords;
       if(allStores.length>0){populateFilters();buildPeriodOptions();renderSummary();renderRecords();renderCalendar();renderPlan();renderCompliance();renderSvStats();renderStoreStats();renderStores();renderAlerts();}
       showToast('データ読み込みに問題が発生しました。再読み込みしてください。',true);
       dataLoaded=false;
       return;
     }
-    allSVs=svs||[];allStores=stores||[];allRecords=records||[];window._allRecords=allRecords;
+    allSVs=svs||[];allStores=stores||[];allRecords=records||[];window.allRecords=allRecords;
     populateFilters();
     buildPeriodOptions();
     renderSummary();renderRecords();renderCalendar();renderPlan();
     renderCompliance();renderSvStats();renderStoreStats();renderStores();renderAlerts();
-    // documentレベルでイベント登録（renderRecordsで消えない）
-    if (!window._yoshinListenerAdded) {
-      window._yoshinListenerAdded = true;
-      document.addEventListener('click', function(e) {
-        var btn = e.target.closest('.btn-yoshin');
-        if (!btn) return;
-        e.preventDefault();
-        e.stopPropagation();
-        var id = parseInt(btn.getAttribute('data-yoshin-id'));
-        if (!id) return;
-        var r = allRecords.find(function(x){ return x.id === id; });
-        if (r) {
-          openYoshinModal(r, 'records');
-        } else {
-          sb.from('sv_records').select('*').eq('id', id).single()
-            .then(function(res) {
-              if (res.data) openYoshinModal(res.data, 'records');
-            });
-        }
-      });
-    }
+
   }catch(e){
     console.error('loadAll exception:',e);
     showToast('データ読み込みエラー: '+e.message, true);
@@ -759,6 +739,7 @@ function showPage(id,el){
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll(`[data-page="${id}"]`).forEach(n=>n.classList.add('active'));
   if(id==='sheets')renderSheets();
+  if(id==='records')renderRecords();
 }
 
 // 1. SUMMARY
@@ -846,13 +827,32 @@ function renderRecords(){
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.note||''}</td>
       <td style="white-space:nowrap">
         <button class="btn btn-sm" onclick='editRecord(${JSON.stringify(r).replace(/'/g,"&#39;")})'>編集</button>
-        ${(!r.report_date&&(r.visit_date||(r.planned_date&&r.planned_date<new Date().toISOString().slice(0,10))))
-          ?` <button class="btn-yoshin" data-yoshin-id="${r.id}" type="button"><i class="ti ti-file-plus"></i> ${r.text_focus?"要因分析編集":"要因分析作成"}</button>`
-          :""
-        }
+        <span class="yoshin-placeholder" data-record-id="${r.id}"></span>
       </td>
     </tr>`).join('')
   }</tbody></table>`;
+
+  // テンプレートリテラルの外でボタンを生成（debug4と同じ方式）
+  var placeholders = document.querySelectorAll('.yoshin-placeholder');
+  document.title = 'SV臨店管理(' + placeholders.length + '件)';
+  placeholders.forEach(function(ph) {
+    var id = parseInt(ph.getAttribute('data-record-id'));
+    var rec = allRecords.filter(function(x){ return x.id === id; })[0];
+    if (!rec) return;
+    var btn = document.createElement('button');
+    btn.textContent = rec.text_focus ? '要因分析編集' : '要因分析作成';
+    btn.style.cssText = 'background:#2563eb!important;color:#fff!important;border:none!important;padding:6px 12px!important;border-radius:4px!important;cursor:pointer!important;font-size:12px!important;margin-left:4px!important;display:inline-block!important';
+    (function(r, b){
+      b.onclick = function(){
+        try {
+          openYoshinModal(r, 'records');
+        } catch(e) {
+          alert('エラー: ' + e.message + ' / ' + e.stack);
+        }
+      };
+    })(rec, btn);
+    ph.parentNode.replaceChild(btn, ph);
+  });
 }
 
 // RECORD MODAL
@@ -1457,8 +1457,11 @@ function openYoshinModal(r, callerPage) {
   document.getElementById('y-action').value = n(r.text_action);
   document.getElementById('y-request').value = n(r.text_owner_request);
   document.getElementById('yoshin-error').textContent = '';
-  switchYoshinTab('kpi'); // 常に数値入力タブから開始
-  document.getElementById('yoshin-modal').classList.add('open');
+  // まずモーダルを表示してからtab切替
+  var modal = document.getElementById('yoshin-modal');
+  modal.style.cssText = 'display:block!important;position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;z-index:9999!important;background:rgba(0,0,0,0.5)!important;overflow-y:auto!important';
+  modal.classList.add('open');
+  try { switchYoshinTab('kpi'); } catch(e) {}
 }
 
 function numOrNull(id) {
@@ -1648,7 +1651,12 @@ async function runFixStoreMapping(){
 }
 
 function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+document.querySelectorAll('.modal-bg').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
+  m.addEventListener('touchend',e=>{
+    if(e.target===m){e.preventDefault();setTimeout(function(){m.classList.remove('open');},10);}
+  });
+});
 
 // ページ復帰時にデータ再取得（スマホでバックグラウンドから戻ったとき）
 document.addEventListener('visibilitychange',async()=>{
@@ -1657,6 +1665,27 @@ document.addEventListener('visibilitychange',async()=>{
     if(session&&allStores.length===0){await loadAll();}
   }
 });
-// btn-yoshin: onclick="window._openYoshin(id)"方式を使用
 
+
+
+// 要因分析ボタン（スマホ対応: touchstart+click両方）
+function _handleYoshinBtn(e){
+  var b = e.target;
+  while(b && b.tagName){
+    if(b.classList && b.classList.contains('btn-yoshin')){
+      e.preventDefault();
+      e.stopPropagation();
+      var id = parseInt(b.getAttribute('data-id'));
+      var records = window.allRecords || allRecords || [];
+      var r = records.filter(function(x){return x.id===id;})[0];
+      if(r){ openYoshinModal(r,'records'); }
+      else{ alert('id:'+id+' len:'+records.length); }
+      return;
+    }
+    b = b.parentNode;
+  }
+}
+
+document.addEventListener('touchend', _handleYoshinBtn);
+document.addEventListener('click', _handleYoshinBtn);
 </script>
