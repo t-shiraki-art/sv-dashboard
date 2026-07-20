@@ -1682,18 +1682,31 @@ document.addEventListener('touchend', _handleYoshinBtn);
 document.addEventListener('click', _handleYoshinBtn);
 
 // 要因分析ボタン - documentレベルで拾う
-document.addEventListener('touchstart', function(e){
-  var btn = e.target.closest('[data-yoshin-id]');
+function _yoshinOpen(e) {
+  var btn = e.target.closest ? e.target.closest('[data-yoshin-id]') : null;
+  if (!btn) {
+    // iOSでclosestが効かない場合の代替
+    var el = e.target;
+    while (el && el !== document.body) {
+      if (el.getAttribute && el.getAttribute('data-yoshin-id')) { btn = el; break; }
+      el = el.parentNode;
+    }
+  }
   if (!btn) return;
   var id = parseInt(btn.getAttribute('data-yoshin-id'));
-  var rec = allRecords.filter(function(x){ return x.id === id; })[0];
-  if (rec) openYoshinModal(rec, 'records');
-}, {passive: true});
-document.addEventListener('click', function(e){
-  var btn = e.target.closest('[data-yoshin-id]');
-  if (!btn) return;
-  var id = parseInt(btn.getAttribute('data-yoshin-id'));
-  var rec = allRecords.filter(function(x){ return x.id === id; })[0];
-  if (rec) openYoshinModal(rec, 'records');
-});
+  // allRecordsを複数の方法で参照
+  var recs = window.allRecords || (typeof allRecords !== 'undefined' ? allRecords : []);
+  var rec = recs.filter(function(x){ return x.id === id; })[0];
+  if (rec) {
+    openYoshinModal(rec, 'records');
+  } else {
+    // Supabaseから直接取得
+    sb.from('sv_records').select('*').eq('id', id).single().then(function(res){
+      if (res.data) openYoshinModal(res.data, 'records');
+      else alert('not found: ' + id);
+    });
+  }
+}
+document.addEventListener('touchstart', _yoshinOpen, {passive: true});
+document.addEventListener('click', _yoshinOpen);
 </script>
