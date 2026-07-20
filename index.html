@@ -858,18 +858,9 @@ function renderRecords(){
     btn.setAttribute('type', 'button');
     btn.style.cssText = 'background:#2563eb;color:#fff;border:none;padding:6px 12px;border-radius:4px;font-size:12px;cursor:pointer;margin-left:4px;-webkit-appearance:none;appearance:none;touch-action:manipulation;display:inline-block';
     // ボタン追加と同時にイベント登録（closureでrをキャプチャ）
-    (function(rec, b) {
-      b.addEventListener('touchend', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        openYoshinModal(rec, 'records');
-      }, false);
-      b.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        openYoshinModal(rec, 'records');
-      }, false);
-    })(r, btn);
+    btn.onclick = (function(rec) {
+      return function() { openYoshinModal(rec, 'records'); };
+    })(r);
     lastTd.appendChild(btn);
   });
 }
