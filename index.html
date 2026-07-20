@@ -847,20 +847,32 @@ function renderRecords(){
 
   // 各行にbuttonを直接DOM操作で追加
   var rows = tbl.querySelectorAll('tbody tr');
+  // debug3と同じ方式：生成直後にforEachでイベントを登録
   rows.forEach(function(row, i) {
     var r = filtered[i];
     if (!r) return;
     var lastTd = row.querySelector('td:last-child');
     if (!lastTd) return;
     var btn = document.createElement('button');
+    btn.className = 'btn-yoshin-cell';
     btn.textContent = r.text_focus ? '要因分析編集' : '要因分析作成';
-    btn.style.cssText = 'background:#2563eb;color:#fff;border:none;padding:5px 10px;border-radius:4px;font-size:12px;cursor:pointer;margin-left:4px;-webkit-appearance:none;appearance:none;touch-action:manipulation';
     btn.setAttribute('type', 'button');
-    (function(rec){
-      btn.addEventListener('click', function(){ openYoshinModal(rec,'records'); });
-      btn.addEventListener('touchend', function(e){ e.preventDefault(); openYoshinModal(rec,'records'); });
-    })(r);
+    btn.setAttribute('data-id', String(r.id));
+    btn.style.cssText = 'background:#2563eb;color:#fff;border:none;padding:6px 12px;border-radius:4px;font-size:12px;cursor:pointer;margin-left:4px;-webkit-appearance:none;appearance:none;touch-action:manipulation;display:inline-block';
     lastTd.appendChild(btn);
+  });
+  // debug3と同じ：生成後にforEachでイベント登録
+  document.querySelectorAll('.btn-yoshin-cell').forEach(function(btn) {
+    var id = parseInt(btn.getAttribute('data-id'));
+    var rec = filtered.filter(function(x){ return x.id === id; })[0];
+    if (!rec) return;
+    btn.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      setTimeout(function(){ openYoshinModal(rec, 'records'); }, 50);
+    });
+    btn.addEventListener('click', function(e) {
+      openYoshinModal(rec, 'records');
+    });
   });
 }
 
