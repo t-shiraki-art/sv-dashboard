@@ -844,10 +844,11 @@ function renderRecords(){
     btn.style.cssText = 'background:#2563eb!important;color:#fff!important;border:none!important;padding:6px 12px!important;border-radius:4px!important;cursor:pointer!important;font-size:12px!important;margin-left:4px!important;display:inline-block!important';
     (function(r, b){
       b.onclick = function(){
+        alert('btn clicked id=' + r.id);
         try {
           openYoshinModal(r, 'records');
         } catch(e) {
-          alert('エラー: ' + e.message + ' / ' + e.stack);
+          alert('エラー: ' + e.message);
         }
       };
     })(rec, btn);
