@@ -1159,28 +1159,70 @@ async function loadKpiReport(){
     document.getElementById('kpi-three-avg').innerHTML=`<div style="grid-column:1/-1;color:var(--red);padding:16px">${e.message}</div>`;
   }
 }
+function kpiRow(label,val,unit,highlight){
+  const color=highlight?(parseFloat(val)>0?'var(--green)':parseFloat(val)<0?'var(--red)':'var(--text1)'):'var(--text1)';
+  return`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--border)"><span style="font-size:11px;color:var(--text2)">${label}</span><span style="font-weight:700;font-size:13px;color:${color}">${val??'-'}<span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px">${unit}</span></span></div>`;
+}
+function kpiSection(title){
+  return`<div style="font-size:10px;font-weight:700;color:var(--primary);margin:10px 0 4px;letter-spacing:.05em">${title}</div>`;
+}
 function renderKpiReport(d){
   const k=d.kpi;const ym=d.ym;
   const ymLabel=ym?`${ym.slice(0,4)}年${parseInt(ym.slice(4,6))}月度`:'';
-  const cards=[
-    {label:`全国FC平均（${k.national_avg?.n_stores||k.total_stores}店舗）`,color:'var(--primary)',icon:'ti-world',data:k.national_avg,type:'fc'},
-    {label:`Platinum20平均（上位${k.pt20_avg?.n_stores||20}店舗）`,color:'var(--green)',icon:'ti-trophy',data:k.pt20_avg,type:'fc'},
-    {label:`直営平均（${k.direct_avg?.n_stores||0}店舗）`,color:'var(--orange)',icon:'ti-building',data:k.direct_avg,type:'direct'},
-  ];
-  document.getElementById('kpi-three-avg').innerHTML=cards.map(c=>{
-    if(!c.data)return`<div class="card" style="margin-bottom:0"><div class="card-body" style="text-align:center;color:var(--text3);font-size:12px">データなし</div></div>`;
-    const rows=c.type==='fc'?[
-      ['買取台数',c.data.buy_units,'台'],
-      ['買取成約率',c.data.buy_close_rate,'%'],
-    ]:[
-      ['買取台数',c.data.buy_units,'台'],
-      ['販売成約数',c.data.sales_units,'台'],
-      ['粗利',c.data.gross,'万円'],
-    ];
-    return`<div class="card" style="margin-bottom:0"><div class="card-body"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><i class="ti ${c.icon}" style="color:${c.color};font-size:18px"></i><div style="font-size:12px;font-weight:700;color:${c.color}">${c.label}</div></div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">${ymLabel}</div>${rows.map(([label,val,unit])=>`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;border-bottom:1px solid var(--border);padding-bottom:4px"><span style="font-size:11px;color:var(--text2)">${label}</span><span style="font-weight:800;font-size:16px">${val??'-'}<span style="font-size:10px;font-weight:400;color:var(--text3)">${unit}</span></span></div>`).join('')}</div></div>`;
-  }).join('');
+  const mkCard=(label,color,icon,data,isDirect)=>{
+    if(!data)return`<div class="card" style="margin-bottom:0"><div class="card-body" style="text-align:center;color:var(--text3);font-size:12px;padding:24px">データなし</div></div>`;
+    const buyLabel=isDirect?'買取台数（月報）':'買取台数';
+    return`<div class="card" style="margin-bottom:0"><div class="card-body">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><i class="ti ${icon}" style="color:${color};font-size:16px"></i><div style="font-size:12px;font-weight:700;color:${color}">${label}</div></div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:8px">${ymLabel}</div>
+      ${kpiSection('■ 買取')}
+      ${kpiRow(buyLabel,data.buy_units,'台')}
+      ${kpiRow('買取成約率',data.buy_close_rate,'%')}
+      ${kpiSection('■ 小売')}
+      ${kpiRow('小売台数',data.retail_units,'台')}
+      ${kpiRow('小売台粗利',data.retail_gp,'万円/台')}
+      ${kpiSection('■ 業販')}
+      ${kpiRow('業販台数',data.ws_units,'台')}
+      ${kpiRow('業販台粗利',data.ws_gp,'万円/台')}
+      ${kpiSection('■ AA')}
+      ${kpiRow('AA台数',data.aa_units,'台')}
+      ${kpiRow('AA台粗利',data.aa_gp,'万円/台')}
+      ${kpiSection('■ 買取源泉')}
+      ${kpiRow('自然来店',data.walkin,'件')}
+      ${kpiRow('リピート',data.repeat_??data.repeat,'件')}
+      ${kpiRow('紹介',data.intro,'件')}
+      ${kpiRow('下取',data.tradein,'件')}
+      ${kpiRow('自社メール',data.ownmedia,'件')}
+      ${kpiRow('一括査定',data.aggsite,'件')}
+    </div></div>`;
+  };
+  const na=k.national_avg,pa=k.pt20_avg,da=k.direct_avg;
+  document.getElementById('kpi-three-avg').innerHTML=`
+    ${mkCard(`全国FC平均（${na?.n||k.total_stores}店舗）`,'var(--primary)','ti-world',na,false)}
+    ${mkCard(`Platinum20平均（上位${pa?.n||20}店舗）`,'var(--green)','ti-trophy',pa,false)}
+    ${mkCard(`直営平均（${da?.n||0}店舗）`,'var(--orange)','ti-building',da,true)}
+  `;
+  // 直営各店詳細テーブル
   const ds=k.direct_stores||[];
-  document.getElementById('kpi-detail-table').innerHTML=ds.length?`<table><thead><tr><th>店舗</th><th>買取台数</th><th>販売成約</th><th>粗利(万)</th><th>営業利益(万)</th></tr></thead><tbody>${ds.map(s=>`<tr><td style="font-weight:600">${s.name}</td><td>${s.buy_units??'-'}</td><td>${s.sales_units??'-'}</td><td>${s.gross??'-'}</td><td style="color:${(s.op_profit||0)>=0?'var(--green)':'var(--red)'}">${s.op_profit??'-'}</td></tr>`).join('')}</tbody></table>`:'<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px">直営実績データなし（今期入力前）</div>';
+  document.getElementById('kpi-detail-table').innerHTML=ds.length?`
+    <div style="overflow-x:auto"><table>
+      <thead><tr>
+        <th>店舗</th>
+        <th>買取</th><th>成約率</th>
+        <th>小売台</th><th>小売粗利</th>
+        <th>業販台</th><th>業販粗利</th>
+        <th>AA台</th><th>AA粗利</th>
+        <th>自然</th><th>リピ</th><th>紹介</th><th>下取</th><th>自社M</th><th>一括</th>
+      </tr></thead>
+      <tbody>${ds.map(s=>`<tr>
+        <td style="font-weight:600;white-space:nowrap">${s.name.replace('カーセブン','').replace('店','')}</td>
+        <td>${s.buy_units??'-'}</td><td>${s.buy_close_rate!=null?s.buy_close_rate+'%':'-'}</td>
+        <td>${s.retail_units??'-'}</td><td style="font-size:11px">${s.retail_gp!=null?s.retail_gp+'万':'-'}</td>
+        <td>${s.ws_units??'-'}</td><td style="font-size:11px">${s.ws_gp!=null?s.ws_gp+'万':'-'}</td>
+        <td>${s.aa_units??'-'}</td><td style="font-size:11px">${s.aa_gp!=null?s.aa_gp+'万':'-'}</td>
+        <td>${s.walkin??'-'}</td><td>${s.repeat_??'-'}</td><td>${s.intro??'-'}</td><td>${s.tradein??'-'}</td><td>${s.ownmedia??'-'}</td><td>${s.aggsite??'-'}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`:'<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px">直営実績データなし（今期入力前）</div>';
 }
 async function previewKpiMail(){
   if(!_kpiReportData){await loadKpiReport();}
@@ -1194,7 +1236,9 @@ async function previewKpiMail(){
   document.getElementById('kpi-mail-subject').textContent=subject;
   // AI文面生成（Anthropic API直接呼び出し）
   try{
-    const prompt=`以下の${year}年${month}月度KPIデータを元に、SVチーム向けの月次実績サマリーメールを日本語で作成してください。\n\n全国FC平均(${k.national_avg?.n_stores??k.total_stores}店): 買取台数=${k.national_avg?.buy_units??'N/A'}台, 買取成約率=${k.national_avg?.buy_close_rate??'N/A'}%\nPlatinum20平均(${k.pt20_avg?.n_stores??20}店): 買取台数=${k.pt20_avg?.buy_units??'N/A'}台, 買取成約率=${k.pt20_avg?.buy_close_rate??'N/A'}%\n直営平均(${k.direct_avg?.n_stores??0}店): 買取=${k.direct_avg?.buy_units??'N/A'}台, 販売成約=${k.direct_avg?.sales_units??'N/A'}台, 粗利=${k.direct_avg?.gross??'N/A'}万円\n直営各店: ${(k.direct_stores||[]).map(s=>`${s.name}:買取${s.buy_units??'-'}台/販売${s.sales_units??'-'}台/粗利${s.gross??'-'}万円`).join(', ')}\n\n条件: SV向け/宛名「SV各位」/全国FC・Pt20・直営の3軸比較と分析コメント/Pt20が全国平均より優れている点に言及/直営の強い店・課題店への言及/次月示唆1〜2点/署名「カーセブン事業本部」/ビジネス文体/400〜600字程度\nメール本文のみ出力すること。`;
+    const na=k.national_avg,pa=k.pt20_avg,da=k.direct_avg;
+    const src=(d)=>d?`自然来店:${d.walkin??'-'} リピート:${d.repeat_??d.repeat??'-'} 紹介:${d.intro??'-'} 下取:${d.tradein??'-'} 自社M:${d.ownmedia??'-'} 一括:${d.aggsite??'-'}`:'';
+    const prompt=`以下の${year}年${month}月度KPIデータを元に、SVチーム向けの月次実績サマリーメールを日本語で作成してください。\n\n[全国FC平均・${na?.n??k.total_stores}店]\n買取:${na?.buy_units}台 成約率:${na?.buy_close_rate}% 小売:${na?.retail_units}台(${na?.retail_gp}万/台) 業販:${na?.ws_units}台(${na?.ws_gp}万/台) AA:${na?.aa_units}台(${na?.aa_gp}万/台)\n源泉:${src(na)}\n\n[Platinum20平均・${pa?.n??20}店]\n買取:${pa?.buy_units}台 成約率:${pa?.buy_close_rate}% 小売:${pa?.retail_units}台(${pa?.retail_gp}万/台) 業販:${pa?.ws_units}台(${pa?.ws_gp}万/台) AA:${pa?.aa_units}台(${pa?.aa_gp}万/台)\n源泉:${src(pa)}\n\n[直営平均・${da?.n??0}店]\n買取:${da?.buy_units}台 成約率:${da?.buy_close_rate}% 小売:${da?.retail_units}台(${da?.retail_gp}万/台) 業販:${da?.ws_units}台(${da?.ws_gp}万/台) AA:${da?.aa_units}台(${da?.aa_gp}万/台)\n源泉:${src(da)}\n\n直営各店:${(k.direct_stores||[]).map(s=>`${s.name.replace('カーセブン','')}:買取${s.buy_units??'-'}/小売${s.retail_units??'-'}台(${s.retail_gp??'-'}万)/業販${s.ws_units??'-'}台/AA${s.aa_units??'-'}台`).join(' ')}\n\n条件: SV向け/宛名「SV各位」/3軸の買取・小売・業販・AA・源泉の多角的比較と分析/Pt20が全国より優れている点/直営の強い店・課題店への言及/次月示唆1〜2点/署名「カーセブン事業本部」/ビジネス文体/500字前後\n本文のみ出力。`;
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':window._anthropicKey||'','anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
     const d=await r.json();
     const text=d.content?.[0]?.text;
@@ -1214,27 +1258,34 @@ async function previewKpiMail(){
 }
 function generateMailTemplate(k,year,month){
   const na=k.national_avg;const pa=k.pt20_avg;const da=k.direct_avg;
+  const src=(d)=>d?`自然:${d.walkin??'-'} リピ:${d.repeat_??d.repeat??'-'} 紹介:${d.intro??'-'} 下取:${d.tradein??'-'} 自社M:${d.ownmedia??'-'} 一括:${d.aggsite??'-'}`:'';
   return `SV各位
 
 ${year}年${month}月度の月次実績サマリーをお送りします。
 
-■ FC全国実績（${na?.n_stores??k.total_stores}店舗平均）
+■ 全国FC平均（${na?.n??k.total_stores}店舗）
+【買取】${na?.buy_units??'-'}台 / 成約率 ${na?.buy_close_rate??'-'}%
+【小売】${na?.retail_units??'-'}台 / 台粗利 ${na?.retail_gp??'-'}万円
+【業販】${na?.ws_units??'-'}台 / 台粗利 ${na?.ws_gp??'-'}万円
+【AA】${na?.aa_units??'-'}台 / 台粗利 ${na?.aa_gp??'-'}万円
+【源泉】${src(na)}
 
-【全国FC平均】
-・買取台数: ${na?.buy_units??'-'}台
-・買取成約率: ${na?.buy_close_rate??'-'}%
+■ Platinum20平均（上位${pa?.n??20}店舗）
+【買取】${pa?.buy_units??'-'}台 / 成約率 ${pa?.buy_close_rate??'-'}%
+【小売】${pa?.retail_units??'-'}台 / 台粗利 ${pa?.retail_gp??'-'}万円
+【業販】${pa?.ws_units??'-'}台 / 台粗利 ${pa?.ws_gp??'-'}万円
+【AA】${pa?.aa_units??'-'}台 / 台粗利 ${pa?.aa_gp??'-'}万円
+【源泉】${src(pa)}
 
-【Platinum20平均（上位${pa?.n_stores??20}店舗）】
-・買取台数: ${pa?.buy_units??'-'}台
-・買取成約率: ${pa?.buy_close_rate??'-'}%
-
-【直営平均（${da?.n_stores??0}店舗）】
-・買取台数: ${da?.buy_units??'-'}台
-・販売成約数: ${da?.sales_units??'-'}台
-・粗利: ${da?.gross??'-'}万円
+■ 直営平均（${da?.n??0}店舗）
+【買取】${da?.buy_units??'-'}台 / 成約率 ${da?.buy_close_rate??'-'}%
+【小売】${da?.retail_units??'-'}台 / 台粗利 ${da?.retail_gp??'-'}万円
+【業販】${da?.ws_units??'-'}台 / 台粗利 ${da?.ws_gp??'-'}万円
+【AA】${da?.aa_units??'-'}台 / 台粗利 ${da?.aa_gp??'-'}万円
+【源泉】${src(da)}
 
 ■ 直営各店実績
-${(k.direct_stores||[]).map(s=>`・${s.name}: 買取${s.buy_units??'-'}台 / 販売${s.sales_units??'-'}台 / 粗利${s.gross??'-'}万円`).join('\n')}
+${(k.direct_stores||[]).map(s=>`・${s.name}: 買取${s.buy_units??'-'}台 小売${s.retail_units??'-'}台(${s.retail_gp??'-'}万) 業販${s.ws_units??'-'}台 AA${s.aa_units??'-'}台`).join('\n')}
 
 引き続きよろしくお願い申し上げます。
 
