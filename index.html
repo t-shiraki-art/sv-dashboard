@@ -1161,9 +1161,10 @@ async function loadKpiReport(){
     document.getElementById('kpi-three-avg').innerHTML=`<div style="grid-column:1/-1;color:var(--red);padding:16px">${e.message}</div>`;
   }
 }
-function kpiRow(label,val,unit,highlight){
+function kpiRow(label,val,unit,highlight,input_n,total_n){
   const color=highlight?(parseFloat(val)>0?'var(--green)':parseFloat(val)<0?'var(--red)':'var(--text1)'):'var(--text1)';
-  return`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--border)"><span style="font-size:11px;color:var(--text2)">${label}</span><span style="font-weight:700;font-size:13px;color:${color}">${val??'-'}<span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px">${unit}</span></span></div>`;
+  const note=(input_n!=null&&total_n!=null&&input_n<total_n)?`<span style="font-size:9px;color:var(--text3);margin-left:4px">${input_n}/${total_n}店</span>`:'';
+  return`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--border)"><span style="font-size:11px;color:var(--text2)">${label}${note}</span><span style="font-weight:700;font-size:13px;color:${color}">${val??'-'}<span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px">${unit}</span></span></div>`;
 }
 function kpiSection(title){
   return`<div style="font-size:10px;font-weight:700;color:var(--primary);margin:10px 0 4px;letter-spacing:.05em">${title}</div>`;
@@ -1189,13 +1190,13 @@ function renderKpiReport(d){
       ${kpiSection('■ AA')}
       ${kpiRow('AA台数',data.aa_units,'台')}
       ${kpiRow('AA台粗利',data.aa_gp,'万円/台')}
-      ${kpiSection('■ 買取源泉')}
-      ${kpiRow('自然来店',data.walkin,'件')}
-      ${kpiRow('リピート',data.repeat_??data.repeat,'件')}
-      ${kpiRow('紹介',data.intro,'件')}
-      ${kpiRow('下取',data.tradein,'件')}
-      ${kpiRow('自社メール',data.ownmedia,'件')}
-      ${kpiRow('一括査定',data.aggsite,'件')}
+      ${kpiSection(`■ 買取源泉（入力店舗の平均）`)}
+      ${kpiRow(`自然来店`,data.walkin,'件',false,data.walkin_n,data.n)}
+      ${kpiRow(`リピート`,data.repeat_,'件',false,data.repeat_n,data.n)}
+      ${kpiRow(`紹介`,data.intro,'件',false,data.intro_n,data.n)}
+      ${kpiRow(`下取`,data.tradein,'件',false,data.tradein_n,data.n)}
+      ${kpiRow(`自社メール`,data.ownmedia,'件',false,data.ownmedia_n,data.n)}
+      ${kpiRow(`一括査定`,data.aggsite,'件',false,data.aggsite_n,data.n)}
     </div></div>`;
   };
   const na=k.national_avg,pa=k.pt20_avg,da=k.direct_avg;
@@ -1239,7 +1240,7 @@ async function previewKpiMail(){
   // AI文面生成（Anthropic API直接呼び出し）
   try{
     const na=k.national_avg,pa=k.pt20_avg,da=k.direct_avg;
-    const src=(d)=>d?`自然来店:${d.walkin??'-'} リピート:${d.repeat_??d.repeat??'-'} 紹介:${d.intro??'-'} 下取:${d.tradein??'-'} 自社M:${d.ownmedia??'-'} 一括:${d.aggsite??'-'}`:'';
+    const src=(d)=>d?`自然来店:${d.walkin??'-'}件(${d.walkin_n??'-'}/${d.n??'-'}店) リピート:${d.repeat_??'-'}件(${d.repeat_n??'-'}/${d.n??'-'}店) 紹介:${d.intro??'-'}件(${d.intro_n??'-'}/${d.n??'-'}店) 下取:${d.tradein??'-'}件(${d.tradein_n??'-'}/${d.n??'-'}店) 自社M:${d.ownmedia??'-'}件(${d.ownmedia_n??'-'}/${d.n??'-'}店) 一括:${d.aggsite??'-'}件(${d.aggsite_n??'-'}/${d.n??'-'}店)`:'';
     const prompt=`以下の${year}年${month}月度KPIデータを元に、SVチーム向けの月次実績サマリーメールを日本語で作成してください。\n\n[全国FC平均・${na?.n??k.total_stores}店]\n買取:${na?.buy_units}台 成約率:${na?.buy_close_rate}% 小売:${na?.retail_units}台(${na?.retail_gp}万/台) 業販:${na?.ws_units}台(${na?.ws_gp}万/台) AA:${na?.aa_units}台(${na?.aa_gp}万/台)\n源泉:${src(na)}\n\n[Platinum20平均・${pa?.n??20}店]\n買取:${pa?.buy_units}台 成約率:${pa?.buy_close_rate}% 小売:${pa?.retail_units}台(${pa?.retail_gp}万/台) 業販:${pa?.ws_units}台(${pa?.ws_gp}万/台) AA:${pa?.aa_units}台(${pa?.aa_gp}万/台)\n源泉:${src(pa)}\n\n[直営平均・${da?.n??0}店]\n買取:${da?.buy_units}台 成約率:${da?.buy_close_rate}% 小売:${da?.retail_units}台(${da?.retail_gp}万/台) 業販:${da?.ws_units}台(${da?.ws_gp}万/台) AA:${da?.aa_units}台(${da?.aa_gp}万/台)\n源泉:${src(da)}\n\n直営各店:${(k.direct_stores||[]).map(s=>`${s.name.replace('カーセブン','')}:買取${s.buy_units??'-'}/小売${s.retail_units??'-'}台(${s.retail_gp??'-'}万)/業販${s.ws_units??'-'}台/AA${s.aa_units??'-'}台`).join(' ')}\n\n条件: SV向け/宛名「SV各位」/3軸の買取・小売・業販・AA・源泉の多角的比較と分析/Pt20が全国より優れている点/直営の強い店・課題店への言及/次月示唆1〜2点/署名「カーセブン事業本部」/ビジネス文体/500字前後\n本文のみ出力。`;
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':window._anthropicKey||'','anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
     const d=await r.json();
