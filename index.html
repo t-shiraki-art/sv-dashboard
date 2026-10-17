@@ -225,6 +225,7 @@ textarea{min-height:70px;resize:vertical}
     <div class="nav-item" data-page="stores" onclick="showPage('stores',this)"><i class="ti ti-database"></i>店舗マスタ</div>
     <div class="nav-item" data-page="alerts" onclick="showPage('alerts',this)"><i class="ti ti-bell"></i>アラート</div>
     <div class="nav-item" data-page="sheets" onclick="showPage('sheets',this)"><i class="ti ti-file-analytics"></i>要因分析</div>
+    <div class="nav-item" data-page="kpi-report" onclick="showPage('kpi-report',this)"><i class="ti ti-chart-bar"></i>KPIレポート</div>
   </nav>
 
   <!-- MOBILE NAV -->
@@ -239,6 +240,7 @@ textarea{min-height:70px;resize:vertical}
     <div class="mobile-nav-item" data-page="stores" onclick="showPage('stores',this)"><i class="ti ti-database"></i>マスタ</div>
     <div class="mobile-nav-item" data-page="alerts" onclick="showPage('alerts',this)"><i class="ti ti-bell"></i>アラート</div>
     <div class="mobile-nav-item" data-page="sheets" onclick="showPage('sheets',this)"><i class="ti ti-file-analytics"></i>分析</div>
+    <div class="mobile-nav-item" data-page="kpi-report" onclick="showPage('kpi-report',this)"><i class="ti ti-chart-bar"></i>KPI</div>
   </div>
 
   <main class="main">
@@ -361,7 +363,52 @@ textarea{min-height:70px;resize:vertical}
       <div class="search-row">
         <input type="text" class="search-input" id="store-stats-search" placeholder="店舗名で検索..." oninput="renderStoreStats()">
       </div>
-      <div id="store-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px"></div>
+      <!-- Pt20データ表示月 -->
+      <div id="pt20-banner" style="display:none;background:var(--primary-l);border:1px solid var(--primary);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--primary);margin-bottom:12px">
+        <i class="ti ti-chart-bar"></i> <span id="pt20-banner-text"></span>
+      </div>
+      <div id="store-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px"></div>
+    </div>
+
+    <!-- KPIレポート -->
+    <div id="page-kpi-report" class="page">
+      <div class="page-title">KPIレポート
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="kpi-ym-select" class="filter-select" onchange="loadKpiReport()">
+            <option value="">最新月</option>
+          </select>
+          <button class="btn btn-sm" onclick="loadKpiReport()"><i class="ti ti-refresh"></i> 更新</button>
+        </div>
+      </div>
+      <!-- 3軸比較カード -->
+      <div id="kpi-three-avg" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px"></div>
+      <!-- 詳細テーブル -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head"><h3><i class="ti ti-table"></i> 全国スコア詳細比較</h3></div>
+        <div class="tbl-wrap" id="kpi-detail-table"></div>
+      </div>
+      <!-- メール送信UI -->
+      <div class="card">
+        <div class="card-head"><h3><i class="ti ti-mail"></i> 月次KPIメール送信</h3></div>
+        <div style="padding:0 16px 16px">
+          <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-sm" onclick="previewKpiMail()" id="btn-kpi-preview"><i class="ti ti-eye"></i> AI文面プレビュー</button>
+            <span style="font-size:11px;color:var(--text3)">送信先:</span>
+            <input type="text" id="kpi-mail-to" placeholder="例: t-shiraki@carseven.jp" style="flex:1;border:1.5px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;background:var(--card);color:var(--text1);min-width:200px">
+          </div>
+          <!-- プレビュー -->
+          <div id="kpi-mail-preview" style="display:none">
+            <div style="font-size:11px;color:var(--text2);font-weight:700;margin-bottom:6px">件名:</div>
+            <div id="kpi-mail-subject" style="background:var(--bg);border-radius:6px;padding:8px 12px;font-size:13px;font-weight:600;margin-bottom:10px;border:1px solid var(--border)"></div>
+            <div style="font-size:11px;color:var(--text2);font-weight:700;margin-bottom:6px">本文:</div>
+            <textarea id="kpi-mail-body" rows="14" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px;font-family:inherit;background:var(--card);color:var(--text1);resize:vertical;box-sizing:border-box"></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:10px">
+              <button class="btn btn-primary" onclick="sendKpiMail()" id="btn-kpi-send"><i class="ti ti-send"></i> 送信</button>
+            </div>
+          </div>
+          <div id="kpi-mail-status" style="display:none;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:8px"></div>
+        </div>
+      </div>
     </div>
 
     <!-- 8. STORES MASTER -->
@@ -618,6 +665,11 @@ async function loadAll(){
     buildPeriodOptions();
     renderSummary();renderRecords();renderCalendar();renderPlan();
     renderCompliance();renderSvStats();renderStoreStats();renderStores();renderAlerts();
+    // Pt20最新月をバックグラウンドでfetch
+    fetch('https://vesnyowtdthtubvmnipg.supabase.co/rest/v1/v_store_monthly_pt20_public?select=report_ym&order=report_ym.desc&limit=1',{headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlc255b3d0ZHRodHVidm1uaXBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ5NzY2MDcsImV4cCI6MjA2MDU1MjYwN30.jkJeqknPT30nFQJFKTb3tDC3DyUPDKiqBFcnBiimr9Q'}}).then(r=>r.json()).then(d=>{if(d?.[0]?.report_ym){window._pt20LatestYm=d[0].report_ym;renderStoreStats();}}).catch(()=>{});
+    // KPIレポートページの年月セレクト初期化
+    const ymSel=document.getElementById('kpi-ym-select');
+    if(ymSel&&ymSel.options.length<=1){['202608','202607','202606','202605'].forEach(ym=>{const o=document.createElement('option');o.value=ym;o.textContent=`${ym.slice(0,4)}年${parseInt(ym.slice(4,6))}月`;ymSel.appendChild(o);});}
 
   }catch(e){
     console.error('loadAll exception:',e);
@@ -649,6 +701,7 @@ function showPage(id,el){
   document.querySelectorAll(`[data-page="${id}"]`).forEach(n=>n.classList.add('active'));
   if(id==='sheets')renderSheets();
   if(id==='records')renderRecords();
+  if(id==='kpi-report'&&!_kpiReportData)loadKpiReport();
 }
 
 // 1. SUMMARY
@@ -1035,18 +1088,47 @@ function renderSvStats(){
 }
 
 // 7. STORE STATS
-function renderStoreStats(){
+// 7. STORE STATS
+async function renderStoreStats(){
   const q=(document.getElementById('store-stats-search').value||'').toLowerCase();
   const active=allStores.filter(s=>s.status==='active'&&(!q||s.store_name.toLowerCase().includes(q)));
+  if(!window._pt20Cache)window._pt20Cache={};
+  const latestYm=window._pt20LatestYm||'';
+  if(latestYm&&!window._pt20Cache[latestYm]){
+    try{
+      const r=await fetch(`https://vesnyowtdthtubvmnipg.supabase.co/rest/v1/v_store_monthly_pt20_public?report_ym=eq.${latestYm}&select=store_code,rank_total,s_buy_units,s_buy_prod,s_buy_close,s_sales_prod,s_total,n_stores`,{headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlc255b3d0ZHRodHVidm1uaXBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ5NzY2MDcsImV4cCI6MjA2MDU1MjYwN30.jkJeqknPT30nFQJFKTb3tDC3DyUPDKiqBFcnBiimr9Q'}});
+      const d=await r.json();
+      if(Array.isArray(d)){const m={};d.forEach(x=>m[x.store_code]=x);window._pt20Cache[latestYm]=m;}
+    }catch(_){}
+  }
+  const pt20Map=window._pt20Cache[latestYm]||{};
+  const ym=latestYm;
+  const ymLabel=ym?`${ym.slice(0,4)}年${parseInt(ym.slice(4,6))}月データ`:'';
+  const banner=document.getElementById('pt20-banner');
+  const bannerText=document.getElementById('pt20-banner-text');
+  if(banner&&ym&&Object.keys(pt20Map).length){banner.style.display='block';bannerText.textContent=`Platinum20スコア表示中（${ymLabel} / 全${Object.values(pt20Map)[0]?.n_stores||'-'}店舗）`;}
   document.getElementById('store-cards').innerHTML=active.map(s=>{
     const recs=allRecords.filter(r=>r.store===s.store_id&&r.visit_date&&new Date(r.visit_date)<=today);
     const sub=recs.filter(r=>r.report_date);
     const rate=recs.length?Math.round(sub.length/recs.length*100):0;
     const lastVisit=recs.filter(r=>r.visit_date).sort((a,b)=>new Date(b.visit_date)-new Date(a.visit_date))[0];
     const unsub=recs.filter(r=>r.visit_date&&!r.report_date).length;
+    const pt=pt20Map[s.store_id];
+    const rankColor=pt?(pt.rank_total<=10?'var(--green)':pt.rank_total<=30?'var(--orange)':'var(--text2)'):'var(--text3)';
+    const pt20Section=pt?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="font-size:10px;font-weight:700;color:var(--primary);margin-bottom:6px">🏆 Pt20スコア（${ymLabel}）</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px">
+          <div><div style="color:var(--text3);font-size:10px">総合ランク</div><div style="font-weight:800;font-size:15px;color:${rankColor}">${pt.rank_total}位<span style="font-size:10px;font-weight:400;color:var(--text3)">/${pt.n_stores}</span></div></div>
+          <div><div style="color:var(--text3);font-size:10px">総合スコア</div><div style="font-weight:700">${pt.s_total}pt</div></div>
+          <div><div style="color:var(--text3);font-size:10px">買取台数</div><div style="font-weight:600">${pt.s_buy_units}pt</div></div>
+          <div><div style="color:var(--text3);font-size:10px">買取粗利</div><div style="font-weight:600">${pt.s_buy_prod}pt</div></div>
+          <div><div style="color:var(--text3);font-size:10px">買取成約率</div><div style="font-weight:600">${pt.s_buy_close}pt</div></div>
+          <div><div style="color:var(--text3);font-size:10px">販売粗利</div><div style="font-weight:600">${pt.s_sales_prod}pt</div></div>
+        </div>
+      </div>`:'<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)">Pt20データなし</div>';
     return`<div class="card" style="margin-bottom:0;cursor:default">
       <div class="card-body">
-        <div style="font-weight:700;font-size:13px;margin-bottom:8px;line-height:1.4">${s.store_name}</div>
+        <div style="font-weight:700;font-size:13px;margin-bottom:4px;line-height:1.4">${s.store_name}</div>
         <div style="font-size:11px;color:${svColor(s.sv)};font-weight:700;margin-bottom:8px">${s.sv||'SV未設定'}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
           <div><div style="color:var(--text3);font-size:10px">臨店件数</div><div style="font-weight:700">${recs.length}件</div></div>
@@ -1054,9 +1136,69 @@ function renderStoreStats(){
           <div><div style="color:var(--text3);font-size:10px">最終臨店</div><div style="font-weight:500">${fmtDate(lastVisit?.visit_date)}</div></div>
           <div><div style="color:var(--text3);font-size:10px">未提出</div><div style="font-weight:700;color:${unsub>0?'var(--red)':'var(--green)'}">${unsub}件</div></div>
         </div>
+        ${pt20Section}
       </div>
     </div>`;
   }).join('');
+}
+// KPIレポート
+let _kpiReportData=null;
+async function loadKpiReport(){
+  const sel=document.getElementById('kpi-ym-select');
+  const ym=sel?.value||'';
+  document.getElementById('kpi-three-avg').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--text3)"><i class="ti ti-loader"></i> 読み込み中...</div>';
+  try{
+    const res=await fetch('https://hcqjfylgsxbiglpnwgyp.supabase.co/functions/v1/monthly-kpi-mail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({preview:true,ym:ym||undefined})});
+    const d=await res.json();
+    if(d.error)throw new Error(d.error);
+    _kpiReportData=d;
+    renderKpiReport(d);
+    document.getElementById('kpi-mail-preview').style.display='none';
+    document.getElementById('kpi-mail-status').style.display='none';
+  }catch(e){
+    document.getElementById('kpi-three-avg').innerHTML=`<div style="grid-column:1/-1;color:var(--red);padding:16px">${e.message}</div>`;
+  }
+}
+function renderKpiReport(d){
+  const k=d.kpi;const ym=d.ym;
+  const ymLabel=ym?`${ym.slice(0,4)}年${parseInt(ym.slice(4,6))}月度`:'';
+  const cards=[
+    {label:`全国平均（${k.total_stores}店舗）`,color:'var(--primary)',icon:'ti-world',data:k.national_avg,type:'pt20'},
+    {label:`Platinum20平均（上位${k.pt20_avg?.n_stores||20}店舗）`,color:'var(--green)',icon:'ti-trophy',data:k.pt20_avg,type:'pt20'},
+    {label:`直営平均（${k.direct_avg?.n_stores||0}店舗）`,color:'var(--orange)',icon:'ti-building',data:k.direct_avg,type:'direct'},
+  ];
+  document.getElementById('kpi-three-avg').innerHTML=cards.map(c=>{
+    if(!c.data)return`<div class="card" style="margin-bottom:0"><div class="card-body" style="text-align:center;color:var(--text3);font-size:12px">データなし</div></div>`;
+    const rows=c.type==='pt20'?[['買取台数スコア',c.data.s_buy_units,'pt'],['買取粗利スコア',c.data.s_buy_prod,'pt'],['買取成約率スコア',c.data.s_buy_close,'pt'],['販売粗利スコア',c.data.s_sales_prod,'pt'],['総合スコア',c.data.s_total,'pt']]:[['買取台数',c.data.buy_units,'台'],['販売成約数',c.data.sales_units,'台'],['粗利',c.data.gross,'万円']];
+    return`<div class="card" style="margin-bottom:0"><div class="card-body"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><i class="ti ${c.icon}" style="color:${c.color};font-size:18px"></i><div style="font-size:12px;font-weight:700;color:${c.color}">${c.label}</div></div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">${ymLabel}</div>${rows.map(([label,val,unit])=>`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;border-bottom:1px solid var(--border);padding-bottom:4px"><span style="font-size:11px;color:var(--text2)">${label}</span><span style="font-weight:800;font-size:16px">${val??'-'}<span style="font-size:10px;font-weight:400;color:var(--text3)">${unit}</span></span></div>`).join('')}</div></div>`;
+  }).join('');
+  const ds=k.direct_stores||[];
+  document.getElementById('kpi-detail-table').innerHTML=ds.length?`<table><thead><tr><th>店舗</th><th>買取台数</th><th>販売成約</th><th>粗利(万)</th><th>売上(万)</th><th>営業利益(万)</th></tr></thead><tbody>${ds.map(s=>`<tr><td style="font-weight:600">${s.name}</td><td>${s.buy_units??'-'}</td><td>${s.sales_units??'-'}</td><td>${s.gross??'-'}</td><td>${s.revenue??'-'}</td><td style="color:${(s.op_profit||0)>=0?'var(--green)':'var(--red)'}">${s.op_profit??'-'}</td></tr>`).join('')}</tbody></table>`:'<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px">直営実績データなし（今期入力前）</div>';
+}
+async function previewKpiMail(){
+  if(!_kpiReportData){await loadKpiReport();}
+  if(!_kpiReportData)return;
+  document.getElementById('kpi-mail-subject').textContent=_kpiReportData.subject||'';
+  document.getElementById('kpi-mail-body').value=_kpiReportData.body||'';
+  document.getElementById('kpi-mail-preview').style.display='block';
+  document.getElementById('kpi-mail-status').style.display='none';
+}
+async function sendKpiMail(){
+  const to=document.getElementById('kpi-mail-to').value.trim();
+  if(!to){alert('送信先メールアドレスを入力してください');return;}
+  const btn=document.getElementById('btn-kpi-send');
+  btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> 送信中...';
+  const status=document.getElementById('kpi-mail-status');
+  try{
+    const sel=document.getElementById('kpi-ym-select');
+    const ym=sel?.value||'';
+    const res=await fetch('https://hcqjfylgsxbiglpnwgyp.supabase.co/functions/v1/monthly-kpi-mail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({send_to:to.split(',').map(x=>x.trim()),ym:ym||undefined})});
+    const d=await res.json();
+    if(d.error)throw new Error(d.error);
+    status.style.display='block';status.style.background='var(--green-l)';status.style.color='var(--green)';status.textContent=`✅ 送信完了（${to}）`;
+  }catch(e){
+    status.style.display='block';status.style.background='var(--red-l)';status.style.color='var(--red)';status.textContent=`❌ 送信失敗: ${e.message}`;
+  }finally{btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i> 送信';}
 }
 
 // 8. STORES
