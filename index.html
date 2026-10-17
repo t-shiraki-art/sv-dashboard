@@ -1178,11 +1178,67 @@ function renderKpiReport(d){
 async function previewKpiMail(){
   if(!_kpiReportData){await loadKpiReport();}
   if(!_kpiReportData)return;
-  document.getElementById('kpi-mail-subject').textContent=_kpiReportData.subject||'';
-  document.getElementById('kpi-mail-body').value=_kpiReportData.body||'';
+  const btn=document.getElementById('btn-kpi-preview');
+  btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> AI生成中...';
+  const k=_kpiReportData.kpi;
+  const ym=_kpiReportData.ym;
+  const year=ym?.slice(0,4);const month=parseInt(ym?.slice(4,6)||'0');
+  const subject=`${year}年${month}月度 月次実績サマリー`;
+  document.getElementById('kpi-mail-subject').textContent=subject;
+  // AI文面生成（Anthropic API直接呼び出し）
+  try{
+    const prompt=`以下の${year}年${month}月度KPIデータを元に、SVチーム向けの月次実績サマリーメールを日本語で作成してください。\n\n全国平均(${k.total_stores}店): 買取台数スコア=${k.national_avg?.s_buy_units??'N/A'}pt, 買取粗利スコア=${k.national_avg?.s_buy_prod??'N/A'}pt, 買取成約率スコア=${k.national_avg?.s_buy_close??'N/A'}pt, 販売粗利スコア=${k.national_avg?.s_sales_prod??'N/A'}pt, 総合スコア平均=${k.national_avg?.s_total??'N/A'}pt\nPlatinum20(${k.pt20_avg?.n_stores??20}店): 買取台数スコア=${k.pt20_avg?.s_buy_units??'N/A'}pt, 買取粗利スコア=${k.pt20_avg?.s_buy_prod??'N/A'}pt, 買取成約率スコア=${k.pt20_avg?.s_buy_close??'N/A'}pt, 販売粗利スコア=${k.pt20_avg?.s_sales_prod??'N/A'}pt, 総合スコア平均=${k.pt20_avg?.s_total??'N/A'}pt\n直営平均(${k.direct_avg?.n_stores??0}店): 買取=${k.direct_avg?.buy_units??'N/A'}台, 販売成約=${k.direct_avg?.sales_units??'N/A'}台, 粗利=${k.direct_avg?.gross??'N/A'}万円\n直営各店: ${(k.direct_stores||[]).map(s=>`${s.name}:買取${s.buy_units??'-'}台/販売${s.sales_units??'-'}台/粗利${s.gross??'-'}万円`).join(', ')}\n\n条件: SV向け/宛名「SV各位」/全国・Pt20・直営の3軸比較と分析コメント/直営の強い店・課題店への言及/次月示唆1〜2点/署名「カーセブン事業本部」/ビジネス文体/400〜600字程度\nメール本文のみ出力すること。`;
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':window._anthropicKey||'','anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    const text=d.content?.[0]?.text;
+    if(text){
+      document.getElementById('kpi-mail-body').value=text;
+    }else if(d.error?.type==='authentication_error'||!window._anthropicKey){
+      // APIキー未設定の場合はテンプレート文面を生成
+      document.getElementById('kpi-mail-body').value=generateMailTemplate(k,year,month);
+    }else{
+      document.getElementById('kpi-mail-body').value=generateMailTemplate(k,year,month);
+    }
+  }catch(e){
+    document.getElementById('kpi-mail-body').value=generateMailTemplate(k,year,month);
+  }finally{btn.disabled=false;btn.innerHTML='<i class="ti ti-eye"></i> AI文面プレビュー';}
   document.getElementById('kpi-mail-preview').style.display='block';
   document.getElementById('kpi-mail-status').style.display='none';
 }
+function generateMailTemplate(k,year,month){
+  const na=k.national_avg;const pa=k.pt20_avg;const da=k.direct_avg;
+  return `SV各位
+
+${year}年${month}月度の月次実績サマリーをお送りします。
+
+■ Platinum20スコア（${k.total_stores}店舗中）
+
+【全国平均】
+・買取台数スコア: ${na?.s_buy_units??'-'}pt
+・買取粗利スコア: ${na?.s_buy_prod??'-'}pt
+・買取成約率スコア: ${na?.s_buy_close??'-'}pt
+・販売粗利スコア: ${na?.s_sales_prod??'-'}pt
+・総合スコア平均: ${na?.s_total??'-'}pt
+
+【Platinum20平均（上位${pa?.n_stores??20}店舗）】
+・買取台数スコア: ${pa?.s_buy_units??'-'}pt
+・買取粗利スコア: ${pa?.s_buy_prod??'-'}pt
+・買取成約率スコア: ${pa?.s_buy_close??'-'}pt
+・販売粗利スコア: ${pa?.s_sales_prod??'-'}pt
+・総合スコア平均: ${pa?.s_total??'-'}pt
+
+【直営平均（${da?.n_stores??0}店舗）】
+・買取台数: ${da?.buy_units??'-'}台
+・販売成約数: ${da?.sales_units??'-'}台
+・粗利: ${da?.gross??'-'}万円
+
+■ 直営各店実績
+${(k.direct_stores||[]).map(s=>`・${s.name}: 買取${s.buy_units??'-'}台 / 販売${s.sales_units??'-'}台 / 粗利${s.gross??'-'}万円`).join('\n')}
+
+引き続きよろしくお願い申し上げます。
+
+カーセブン事業本部`;}
+
 async function sendKpiMail(){
   const to=document.getElementById('kpi-mail-to').value.trim();
   if(!to){alert('送信先メールアドレスを入力してください');return;}
