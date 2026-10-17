@@ -1151,10 +1151,12 @@ async function loadKpiReport(){
     const res=await fetch('https://hcqjfylgsxbiglpnwgyp.supabase.co/functions/v1/monthly-kpi-mail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({preview:true,ym:ym||undefined})});
     const d=await res.json();
     if(d.error)throw new Error(d.error);
+    // Edge FunctionのAI生成が失敗していた場合bodyがnullまたは失敗文言→後でテンプレートで補完
     _kpiReportData=d;
     renderKpiReport(d);
     document.getElementById('kpi-mail-preview').style.display='none';
     document.getElementById('kpi-mail-status').style.display='none';
+    document.getElementById('kpi-mail-body').value='';
   }catch(e){
     document.getElementById('kpi-three-avg').innerHTML=`<div style="grid-column:1/-1;color:var(--red);padding:16px">${e.message}</div>`;
   }
@@ -1294,18 +1296,30 @@ ${(k.direct_stores||[]).map(s=>`・${s.name}: 買取${s.buy_units??'-'}台 小�
 async function sendKpiMail(){
   const to=document.getElementById('kpi-mail-to').value.trim();
   if(!to){alert('送信先メールアドレスを入力してください');return;}
+  const subject=document.getElementById('kpi-mail-subject').textContent||'';
+  const body=document.getElementById('kpi-mail-body').value||'';
+  if(!body||body==='メール文面の生成に失敗しました'){alert('先に「AI文面プレビュー」を押して文面を生成してください');return;}
   const btn=document.getElementById('btn-kpi-send');
   btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> 送信中...';
   const status=document.getElementById('kpi-mail-status');
   try{
-    const sel=document.getElementById('kpi-ym-select');
-    const ym=sel?.value||'';
-    const res=await fetch('https://hcqjfylgsxbiglpnwgyp.supabase.co/functions/v1/monthly-kpi-mail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({send_to:to.split(',').map(x=>x.trim()),ym:ym||undefined})});
+    // 画面上の件名・本文をEdge Functionに渡して送信（文面の再生成はしない）
+    const res=await fetch('https://hcqjfylgsxbiglpnwgyp.supabase.co/functions/v1/monthly-kpi-mail',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        send_to:to.split(',').map(x=>x.trim()),
+        subject_override:subject,
+        body_override:body
+      })
+    });
     const d=await res.json();
     if(d.error)throw new Error(d.error);
-    status.style.display='block';status.style.background='var(--green-l)';status.style.color='var(--green)';status.textContent=`✅ 送信完了（${to}）`;
+    status.style.display='block';status.style.background='var(--green-l)';status.style.color='var(--green)';
+    status.textContent=`✅ 送信完了（${to}）`;
   }catch(e){
-    status.style.display='block';status.style.background='var(--red-l)';status.style.color='var(--red)';status.textContent=`❌ 送信失敗: ${e.message}`;
+    status.style.display='block';status.style.background='var(--red-l)';status.style.color='var(--red)';
+    status.textContent=`❌ 送信失敗: ${e.message}`;
   }finally{btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i> 送信';}
 }
 
