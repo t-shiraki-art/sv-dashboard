@@ -1220,13 +1220,13 @@ function renderKpiReport(d){
       ${kpiRow('買取成約率',data.buy_close_rate,'%',false,null,null,p.buy_close_rate)}
       ${kpiSection('■ 小売（JOCAR）')}
       ${kpiRow('小売台数',data.retail_units,'台',false,null,null,p.retail_units)}
-      ${kpiRow('小売台粗利',data.retail_gp,'万円/台',false,null,null,p.retail_gp)}
+      ${kpiRow('小売台粗利',data.retail_gp,'千円/台',false,null,null,p.retail_gp)}
       ${kpiSection('■ 業販（JOCAR）')}
       ${kpiRow('業販台数',data.ws_units,'台',false,null,null,p.ws_units)}
-      ${kpiRow('業販台粗利',data.ws_gp,'万円/台',false,null,null,p.ws_gp)}
+      ${kpiRow('業販台粗利',data.ws_gp,'千円/台',false,null,null,p.ws_gp)}
       ${kpiSection('■ AA（JOCAR）')}
       ${kpiRow('AA台数',data.aa_units,'台',false,null,null,p.aa_units)}
-      ${kpiRow('AA台粗利',data.aa_gp,'万円/台',false,null,null,p.aa_gp)}
+      ${kpiRow('AA台粗利',data.aa_gp,'千円/台',false,null,null,p.aa_gp)}
       ${kpiSection('■ 買取源泉（kaitori_kpi）')}
       ${kpiRow('自然来店',data.buy_walkin,'件')}
       ${kpiRow('自社メール',data.buy_ownmedia,'件')}
@@ -1236,14 +1236,18 @@ function renderKpiReport(d){
       ${kpiRow('下取り',data.buy_tradein,'件')}
       ${kpiRow('入電',data.buy_tel,'件')}
       ${kpiRow('CC',data.buy_cc,'件')}
-      ${kpiSection('■ 販売源泉（SmartSign）')}
-      ${kpiRow('成約台数',data.sales_total,'台')}
-      ${kpiRow('CS',data.sales_cs,'件')}
-      ${kpiRow('goo',data.sales_goo,'件')}
-      ${kpiRow('HP',data.sales_hp,'件')}
-      ${kpiRow('NC',data.sales_nc,'件')}
-      ${kpiRow('新規フリー',data.sales_free,'件')}
-      ${kpiRow('紹介',data.sales_intro,'件')}
+      ${kpiSection('■ 販売源泉（hanbai_kpi）')}
+      ${kpiRow('販売成約数',data.sales_units,'台')}
+      ${kpiRow('CS',data.sales_cs,'台')}
+      ${kpiRow('GOO',data.sales_goo,'台')}
+      ${kpiRow('フリー',data.sales_free,'台')}
+      ${kpiRow('NC',data.sales_nc,'台')}
+      ${kpiRow('HP',data.sales_hp,'台')}
+      ${kpiRow('紹介',data.sales_intro,'台')}
+      ${kpiSection('■ PL（pl_monthly）')}
+      ${kpiRow('粗利',data.gross,'万円')}
+      ${kpiRow('売上',data.revenue,'万円')}
+      ${kpiRow('営業利益',data.op_profit,'万円',true)}
     </div></div>`;
   };
   const na=k.national_avg,pa=k.pt20_avg,da=k.direct_avg;
@@ -1261,19 +1265,32 @@ function renderKpiReport(d){
     <div style="overflow-x:auto"><table>
       <thead><tr>
         <th>店舗</th>
-        <th>買取</th><th>成約率</th>
-        <th>小売台</th><th>小売粗利</th>
-        <th>業販台</th><th>業販粗利</th>
-        <th>AA台</th><th>AA粗利</th>
-        <th>自然</th><th>リピ</th><th>紹介</th><th>下取</th><th>自社M</th><th>一括</th>
+        <th>買取台</th><th>接客</th><th>成約率</th>
+        <th>小売台</th><th>小売粗利(千)</th>
+        <th>業販台</th><th>業販粗利(千)</th>
+        <th>AA台</th><th>AA粗利(千)</th>
+        <th>販売台</th>
+        <th>粗利(万)</th><th>売上(万)</th><th>営業利益(万)</th>
+        <th>自然</th><th>自社M</th><th>他社M</th><th>リピ</th><th>紹介</th><th>下取</th><th>入電</th><th>CC</th>
       </tr></thead>
       <tbody>${ds.map(s=>`<tr>
-        <td style="font-weight:600;white-space:nowrap">${s.name.replace('カーセブン','').replace('店','')}</td>
-        <td>${s.buy_units??'-'}</td><td>${s.buy_close_rate!=null?s.buy_close_rate+'%':'-'}</td>
-        <td>${s.retail_units??'-'}</td><td style="font-size:11px">${s.retail_gp!=null?s.retail_gp+'万':'-'}</td>
-        <td>${s.ws_units??'-'}</td><td style="font-size:11px">${s.ws_gp!=null?s.ws_gp+'万':'-'}</td>
-        <td>${s.aa_units??'-'}</td><td style="font-size:11px">${s.aa_gp!=null?s.aa_gp+'万':'-'}</td>
-        <td>${s.walkin??'-'}</td><td>${s.repeat_??'-'}</td><td>${s.intro??'-'}</td><td>${s.tradein??'-'}</td><td>${s.ownmedia??'-'}</td><td>${s.aggsite??'-'}</td>
+        <td style="font-weight:600;white-space:nowrap">${s.name}</td>
+        <td>${s.buy_units??'-'}</td>
+        <td>${s.buy_contacts??'-'}</td>
+        <td>${s.buy_close_rate!=null?s.buy_close_rate+'%':'-'}</td>
+        <td>${s.retail_units??'-'}</td>
+        <td style="font-size:11px">${s.retail_gp!=null?s.retail_gp+'千':'-'}</td>
+        <td>${s.ws_units??'-'}</td>
+        <td style="font-size:11px">${s.ws_gp!=null?s.ws_gp+'千':'-'}</td>
+        <td>${s.aa_units??'-'}</td>
+        <td style="font-size:11px">${s.aa_gp!=null?s.aa_gp+'千':'-'}</td>
+        <td>${s.sales_units??'-'}</td>
+        <td>${s.gross??'-'}</td>
+        <td>${s.revenue??'-'}</td>
+        <td style="color:${(s.op_profit||0)>=0?'var(--green)':'var(--red)'}">${s.op_profit??'-'}</td>
+        <td>${s.buy_walkin??'-'}</td><td>${s.buy_ownmedia??'-'}</td><td>${s.buy_othermedia??'-'}</td>
+        <td>${s.buy_repeat??'-'}</td><td>${s.buy_intro??'-'}</td><td>${s.buy_tradein??'-'}</td>
+        <td>${s.buy_tel??'-'}</td><td>${s.buy_cc??'-'}</td>
       </tr>`).join('')}</tbody>
     </table></div>`:'<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px">直営実績データなし（今期入力前）</div>';
 }
