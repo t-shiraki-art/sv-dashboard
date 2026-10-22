@@ -1178,7 +1178,8 @@ function kpiSection(title){
 function renderKpiReport(d){
   const k=d.kpi;const ym=d.ym;
   const ymLabel=ym?`${ym.slice(0,4)}年${parseInt(ym.slice(4,6))}月度`:'';
-  const mkCard=(label,color,icon,data,prev)=>{
+  // FC用カード（factor_report_publicのキー名）
+  const mkFcCard=(label,color,icon,data,prev)=>{
     if(!data)return`<div class="card" style="margin-bottom:0"><div class="card-body" style="text-align:center;color:var(--text3);font-size:12px;padding:24px">データなし</div></div>`;
     const p=prev||{};
     const prevLabel=prev?`<span style="font-size:9px;color:var(--text3);margin-left:6px">カッコ内は前月比</span>`:'';
@@ -1197,21 +1198,62 @@ function renderKpiReport(d){
       ${kpiSection('■ AA')}
       ${kpiRow('AA台数',data.aa_units,'台',false,null,null,p.aa_units)}
       ${kpiRow('AA台粗利',data.aa_gp,'万円/台',false,null,null,p.aa_gp)}
-      ${kpiSection(`■ 買取源泉（入力店舗の平均）`)}
-      ${kpiRow(`自然来店`,data.walkin,'件',false,data.walkin_n,data.n)}
-      ${kpiRow(`リピート`,data.repeat_,'件',false,data.repeat_n,data.n)}
-      ${kpiRow(`紹介`,data.intro,'件',false,data.intro_n,data.n)}
-      ${kpiRow(`下取`,data.tradein,'件',false,data.tradein_n,data.n)}
-      ${kpiRow(`自社メール`,data.ownmedia,'件',false,data.ownmedia_n,data.n)}
-      ${kpiRow(`一括査定`,data.aggsite,'件',false,data.aggsite_n,data.n)}
+      ${kpiSection('■ 買取源泉（入力店舗の平均）')}
+      ${kpiRow('自然来店',data.buy_walkin,'件',false,data.walkin_n,data.n)}
+      ${kpiRow('リピート',data.buy_repeat,'件',false,data.repeat_n,data.n)}
+      ${kpiRow('紹介',data.buy_intro,'件',false,data.intro_n,data.n)}
+      ${kpiRow('下取',data.buy_tradein,'件',false,data.tradein_n,data.n)}
+      ${kpiRow('自社メール',data.buy_ownmedia,'件',false,data.ownmedia_n,data.n)}
+      ${kpiRow('一括査定',data.buy_aggsite,'件',false,data.aggsite_n,data.n)}
+    </div></div>`;
+  };
+  // 直営用カード（JOCAR+kaitori_kpi+v_hanbai_seiyakuのキー名）
+  const mkDirectCard=(label,color,icon,data,prev)=>{
+    if(!data)return`<div class="card" style="margin-bottom:0"><div class="card-body" style="text-align:center;color:var(--text3);font-size:12px;padding:24px">データなし</div></div>`;
+    const p=prev||{};
+    const prevLabel=prev?`<span style="font-size:9px;color:var(--text3);margin-left:6px">カッコ内は前月比</span>`:'';
+    return`<div class="card" style="margin-bottom:0"><div class="card-body">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><i class="ti ${icon}" style="color:${color};font-size:16px"></i><div style="font-size:12px;font-weight:700;color:${color}">${label}</div></div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:8px">${ymLabel}${prevLabel}</div>
+      ${kpiSection('■ 買取（kaitori_kpi）')}
+      ${kpiRow('買取台数',data.buy_units,'台',false,null,null,p.buy_units)}
+      ${kpiRow('買取成約率',data.buy_close_rate,'%',false,null,null,p.buy_close_rate)}
+      ${kpiSection('■ 小売（JOCAR）')}
+      ${kpiRow('小売台数',data.retail_units,'台',false,null,null,p.retail_units)}
+      ${kpiRow('小売台粗利',data.retail_gp,'万円/台',false,null,null,p.retail_gp)}
+      ${kpiSection('■ 業販（JOCAR）')}
+      ${kpiRow('業販台数',data.ws_units,'台',false,null,null,p.ws_units)}
+      ${kpiRow('業販台粗利',data.ws_gp,'万円/台',false,null,null,p.ws_gp)}
+      ${kpiSection('■ AA（JOCAR）')}
+      ${kpiRow('AA台数',data.aa_units,'台',false,null,null,p.aa_units)}
+      ${kpiRow('AA台粗利',data.aa_gp,'万円/台',false,null,null,p.aa_gp)}
+      ${kpiSection('■ 買取源泉（kaitori_kpi）')}
+      ${kpiRow('自然来店',data.buy_walkin,'件')}
+      ${kpiRow('自社メール',data.buy_ownmedia,'件')}
+      ${kpiRow('他社メール',data.buy_othermedia,'件')}
+      ${kpiRow('リピート',data.buy_repeat,'件')}
+      ${kpiRow('紹介',data.buy_intro,'件')}
+      ${kpiRow('下取り',data.buy_tradein,'件')}
+      ${kpiRow('入電',data.buy_tel,'件')}
+      ${kpiRow('CC',data.buy_cc,'件')}
+      ${kpiSection('■ 販売源泉（SmartSign）')}
+      ${kpiRow('成約台数',data.sales_total,'台')}
+      ${kpiRow('CS',data.sales_cs,'件')}
+      ${kpiRow('goo',data.sales_goo,'件')}
+      ${kpiRow('HP',data.sales_hp,'件')}
+      ${kpiRow('NC',data.sales_nc,'件')}
+      ${kpiRow('新規フリー',data.sales_free,'件')}
+      ${kpiRow('紹介',data.sales_intro,'件')}
     </div></div>`;
   };
   const na=k.national_avg,pa=k.pt20_avg,da=k.direct_avg;
   const np=k.national_prev,pp=k.pt20_prev,dp=k.direct_prev;
+  // Pt20は上位20%（84店なら17店、76店なら16店等）
+  const pt20Label=pa?`Platinum20平均（上位20%・${pa.n}店舗）`:`Platinum20平均`;
   document.getElementById('kpi-three-avg').innerHTML=`
-    ${mkCard(`全国FC平均（${na?.n||k.total_stores}店舗）`,'var(--primary)','ti-world',na,np)}
-    ${mkCard(`Platinum20平均（上位${pa?.n||20}店舗）`,'var(--green)','ti-trophy',pa,pp)}
-    ${mkCard(`直営平均（${da?.n||0}店舗）`,'var(--orange)','ti-building',da,dp)}
+    ${mkFcCard(`全国FC平均（${na?.n||k.total_stores}店舗）`,'var(--primary)','ti-world',na,np)}
+    ${mkFcCard(pt20Label,'var(--green)','ti-trophy',pa,pp)}
+    ${mkDirectCard(`直営平均（${da?.n||0}店舗）`,'var(--orange)','ti-building',da,dp)}
   `;
   // 直営各店詳細テーブル
   const ds=k.direct_stores||[];
