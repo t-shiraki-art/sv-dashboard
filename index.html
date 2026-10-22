@@ -1249,7 +1249,7 @@ function renderKpiReport(d){
   const na=k.national_avg,pa=k.pt20_avg,da=k.direct_avg;
   const np=k.national_prev,pp=k.pt20_prev,dp=k.direct_prev;
   // Pt20は上位20%（84店なら17店、76店なら16店等）
-  const pt20Label=pa?`Platinum20平均（上位20%・${pa.n}店舗）`:`Platinum20平均`;
+  const pt20Label=pa?`Platinum20平均（固定${pa.n}店舗）`:`Platinum20平均`;
   document.getElementById('kpi-three-avg').innerHTML=`
     ${mkFcCard(`全国FC平均（${na?.n||k.total_stores}店舗）`,'var(--primary)','ti-world',na,np)}
     ${mkFcCard(pt20Label,'var(--green)','ti-trophy',pa,pp)}
