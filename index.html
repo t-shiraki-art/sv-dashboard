@@ -1227,15 +1227,15 @@ function renderKpiReport(d){
       ${kpiSection('■ AA（JOCAR）')}
       ${kpiRow('AA台数',data.aa_units,'台',false,null,null,p.aa_units)}
       ${kpiRow('AA台粗利',data.aa_gp,'千円/台',false,null,null,p.aa_gp)}
-      ${kpiSection('■ 買取源泉（kaitori_kpi）')}
-      ${kpiRow('自然来店',data.buy_walkin,'件')}
-      ${kpiRow('自社メール',data.buy_ownmedia,'件')}
-      ${kpiRow('他社メール',data.buy_othermedia,'件')}
-      ${kpiRow('リピート',data.buy_repeat,'件')}
-      ${kpiRow('紹介',data.buy_intro,'件')}
-      ${kpiRow('下取り',data.buy_tradein,'件')}
-      ${kpiRow('入電',data.buy_tel,'件')}
-      ${kpiRow('CC',data.buy_cc,'件')}
+      ${kpiSection('■ 査定源泉（査定数・kaitori_kpi）')}
+      ${kpiRow('自然来店',data.src_walkin,'件')}
+      ${kpiRow('自社メール',data.src_ownmedia,'件')}
+      ${kpiRow('他社メール',data.src_othermedia,'件')}
+      ${kpiRow('リピート',data.src_repeat,'件')}
+      ${kpiRow('紹介',data.src_intro,'件')}
+      ${kpiRow('下取り',data.src_tradein,'件')}
+      ${kpiRow('入電',data.src_tel,'件')}
+      ${kpiRow('CC',data.src_cc,'件')}
       ${kpiSection('■ 販売源泉（hanbai_kpi）')}
       ${kpiRow('販売成約数',data.sales_units,'台')}
       ${kpiRow('CS',data.sales_cs,'台')}
@@ -1288,9 +1288,9 @@ function renderKpiReport(d){
         <td>${s.gross??'-'}</td>
         <td>${s.revenue??'-'}</td>
         <td style="color:${(s.op_profit||0)>=0?'var(--green)':'var(--red)'}">${s.op_profit??'-'}</td>
-        <td>${s.buy_walkin??'-'}</td><td>${s.buy_ownmedia??'-'}</td><td>${s.buy_othermedia??'-'}</td>
-        <td>${s.buy_repeat??'-'}</td><td>${s.buy_intro??'-'}</td><td>${s.buy_tradein??'-'}</td>
-        <td>${s.buy_tel??'-'}</td><td>${s.buy_cc??'-'}</td>
+        <td>${s.src_walkin??'-'}</td><td>${s.src_ownmedia??'-'}</td><td>${s.src_othermedia??'-'}</td>
+        <td>${s.src_repeat??'-'}</td><td>${s.src_intro??'-'}</td><td>${s.src_tradein??'-'}</td>
+        <td>${s.src_tel??'-'}</td><td>${s.src_cc??'-'}</td>
       </tr>`).join('')}</tbody>
     </table></div>`:'<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px">直営実績データなし（今期入力前）</div>';
 }
