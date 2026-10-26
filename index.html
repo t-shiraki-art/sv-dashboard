@@ -1220,13 +1220,13 @@ function renderKpiReport(d){
       ${kpiRow('買取成約率',data.buy_close_rate,'%',false,null,null,p.buy_close_rate)}
       ${kpiSection('■ 小売（JOCAR）')}
       ${kpiRow('小売台数',data.retail_units,'台',false,null,null,p.retail_units)}
-      ${kpiRow('小売台粗利',data.retail_gp,'千円/台',false,null,null,p.retail_gp)}
+      ${kpiRow('小売台粗利',data.retail_gp,'万円/台',false,null,null,p.retail_gp)}
       ${kpiSection('■ 業販（JOCAR）')}
       ${kpiRow('業販台数',data.ws_units,'台',false,null,null,p.ws_units)}
-      ${kpiRow('業販台粗利',data.ws_gp,'千円/台',false,null,null,p.ws_gp)}
+      ${kpiRow('業販台粗利',data.ws_gp,'万円/台',false,null,null,p.ws_gp)}
       ${kpiSection('■ AA（JOCAR）')}
       ${kpiRow('AA台数',data.aa_units,'台',false,null,null,p.aa_units)}
-      ${kpiRow('AA台粗利',data.aa_gp,'千円/台',false,null,null,p.aa_gp)}
+      ${kpiRow('AA台粗利',data.aa_gp,'万円/台',false,null,null,p.aa_gp)}
       ${kpiSection('■ 査定源泉（査定数・kaitori_kpi）')}
       ${kpiRow('自然来店',data.src_walkin,'件')}
       ${kpiRow('自社メール',data.src_ownmedia,'件')}
@@ -1266,9 +1266,9 @@ function renderKpiReport(d){
       <thead><tr>
         <th>店舗</th>
         <th>買取台</th><th>接客</th><th>成約率</th>
-        <th>小売台</th><th>小売粗利(千)</th>
-        <th>業販台</th><th>業販粗利(千)</th>
-        <th>AA台</th><th>AA粗利(千)</th>
+        <th>小売台</th><th>小売粗利(万)</th>
+        <th>業販台</th><th>業販粗利(万)</th>
+        <th>AA台</th><th>AA粗利(万)</th>
         <th>販売台</th>
         <th>粗利(万)</th><th>売上(万)</th><th>営業利益(万)</th>
         <th>自然</th><th>自社M</th><th>他社M</th><th>リピ</th><th>紹介</th><th>下取</th><th>入電</th><th>CC</th>
@@ -1279,11 +1279,11 @@ function renderKpiReport(d){
         <td>${s.buy_contacts??'-'}</td>
         <td>${s.buy_close_rate!=null?s.buy_close_rate+'%':'-'}</td>
         <td>${s.retail_units??'-'}</td>
-        <td style="font-size:11px">${s.retail_gp!=null?s.retail_gp+'千':'-'}</td>
+        <td style="font-size:11px">${s.retail_gp!=null?s.retail_gp+'万':'-'}</td>
         <td>${s.ws_units??'-'}</td>
-        <td style="font-size:11px">${s.ws_gp!=null?s.ws_gp+'千':'-'}</td>
+        <td style="font-size:11px">${s.ws_gp!=null?s.ws_gp+'万':'-'}</td>
         <td>${s.aa_units??'-'}</td>
-        <td style="font-size:11px">${s.aa_gp!=null?s.aa_gp+'千':'-'}</td>
+        <td style="font-size:11px">${s.aa_gp!=null?s.aa_gp+'万':'-'}</td>
         <td>${s.sales_units??'-'}</td>
         <td>${s.gross??'-'}</td>
         <td>${s.revenue??'-'}</td>
